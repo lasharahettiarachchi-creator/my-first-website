@@ -70,7 +70,7 @@
         .canvas-container {
             background: rgba(2, 6, 23, 0.95);
             border-radius: 1.25rem;
-            padding: 10px;
+            padding: 12px;
             border: 2px solid rgba(56, 189, 248, 0.3);
             box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 0 20px rgba(56, 189, 248, 0.2);
             margin-top: 12px;
@@ -205,7 +205,7 @@
     <div class="scores" id="scores-container"></div>
     
     <div class="canvas-container">
-        <canvas id="gameCanvas" width="360" height="360"></canvas>
+        <canvas id="gameCanvas" width="380" height="380"></canvas>
     </div>
     
     <div class="controls">
@@ -232,7 +232,7 @@
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    const gridSize = 18;
+    const gridSize = 19;
     const tileCount = 20;
 
     let snakes = {
@@ -311,17 +311,15 @@
         }, 130);
     }
 
-    /* REALISTIC BEAUTIFUL SNAKE RENDERING */
     function drawSnake(snake, colorObj, currentDir) {
         let totalSegments = snake.length;
 
         snake.forEach((part, index) => {
-            let px = part.x * gridSize;
-            let py = part.y * gridSize;
+            let px = part.x * gridSize + 3;
+            let py = part.y * gridSize + 3;
 
-            // Tail Tapering Effect
             let shrinkRatio = index / Math.max(totalSegments, 1);
-            let currentSize = Math.max(gridSize - (shrinkRatio * 9), 6);
+            let currentSize = Math.max(gridSize - (shrinkRatio * 8), 6);
             let offset = (gridSize - currentSize) / 2;
 
             ctx.shadowBlur = (index === 0) ? 12 : 4;
@@ -329,14 +327,13 @@
 
             ctx.fillStyle = (index === 0) ? colorObj.head : colorObj.body;
             ctx.beginPath();
-            ctx.arc(px + gridSize / 2, py + gridSize / 2, currentSize / 2, 0, Math.PI * 2);
+            ctx.arc(px + offset + currentSize / 2, py + offset + currentSize / 2, currentSize / 2, 0, Math.PI * 2);
             ctx.fill();
 
-            // Directional Eye Placement
             if (index === 0) {
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = '#ffffff';
-                let eye1X = px + 5, eye1Y = py + 5, eye2X = px + 11, eye2Y = py + 11;
+                let eye1X = px + 4, eye1Y = py + 4, eye2X = px + 12, eye2Y = py + 12;
 
                 if (currentDir.x === 1) { eye1X = px + 12; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 12; }
                 else if (currentDir.x === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 4; eye2Y = py + 12; }
@@ -352,19 +349,29 @@
         ctx.shadowBlur = 0;
     }
 
+    function drawBlinkingFood() {
+        let fx = food.x * gridSize + gridSize / 2 + 3;
+        let fy = food.y * gridSize + gridSize / 2 + 3;
+        
+        // Pulsing / Blinking animation calculation using time
+        let time = Date.now() / 180;
+        let pulseSize = (gridSize / 2 - 2) + Math.sin(time) * 3;
+        let glowIntensity = 15 + Math.sin(time) * 10;
+
+        ctx.shadowBlur = glowIntensity;
+        ctx.shadowColor = '#ef4444';
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(fx, fy, Math.max(pulseSize, 4), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+
     function drawSolo() {
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Glowing Food
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = '#ef4444';
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
+        drawBlinkingFood();
         drawSnake(snakes.p1, colors.p1, dirs.p1);
     }
 
@@ -529,13 +536,7 @@
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = '#ef4444';
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        drawBlinkingFood();
 
         for (let i = 1; i <= activePlayers; i++) {
             let pKey = 'p' + i;
@@ -566,6 +567,17 @@
 
         if (newDir) changeDirection(newDir.x, newDir.y);
     });
+
+    // Continuous render loop for smooth blinking animation even when standing still
+    function renderLoop() {
+        if (!document.getElementById('game').classList.contains('hidden')) {
+            if (isSolo) {
+                drawSolo();
+            }
+        }
+        requestAnimationFrame(renderLoop);
+    }
+    requestAnimationFrame(renderLoop);
 </script>
 </body>
 </html>
