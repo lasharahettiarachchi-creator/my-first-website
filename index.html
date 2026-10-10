@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer Tic-Tac-Toe</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Super Fast Multiplayer Tic-Tac-Toe</title>
+    <!-- Ultra Fast Pub/Sub Network CDN -->
+    <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
@@ -14,7 +15,7 @@
         .btn:hover { background: #0369a1; }
         input { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #334155; background: #0f172a; color: white; margin-top: 10px; text-align: center; font-size: 1.1rem; }
         .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .cell { background: #334155; height: 90px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; user-select: none; }
+        .cell { background: #334155; height: 90px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; user-select: none; transition: background 0.1s; }
         .cell:hover { background: #475569; }
         .status { margin-top: 15px; font-weight: bold; color: #38bdf8; min-height: 24px; }
         .hidden { display: none; }
@@ -24,26 +25,25 @@
 <body>
 
 <div class="card" id="lobby">
-    <h1>Online 2-Player Game</h1>
-    <p>Palamu Computer eken Room ID eka Generate karala, Dwithiya Computer ekata danna.</p>
+    <h1>⚡ Ultra-Fast 2P Game</h1>
+    <p>1 වෙනි Computer එකෙන් Create කරලා, 2 වෙනි Computer එකෙන් Join වෙන්න.</p>
     
-    <button class="btn" onclick="createRoom()">Create New Room</button>
+    <button class="btn" onclick="createRoom()">Create Game Room</button>
     <div id="host-area" class="hidden">
-        <p>Obage Room Code eka:</p>
-        <div class="code-display" id="my-id">Generating...</div>
-        <p style="font-size:0.85rem; color:#94a3b8;">Anith computer ekata me code eka denna.</p>
+        <p>ඔබේ Room Code එක:</p>
+        <div class="code-display" id="my-code">---</div>
     </div>
 
     <hr style="border-color:#334155; margin:20px 0;">
 
-    <input type="text" id="join-id" placeholder="Enter Room Code Here">
+    <input type="text" id="room-input" placeholder="Enter Room Code (e.g. 4521)">
     <button class="btn" style="background:#16a34a;" onclick="joinRoom()">Join Game Room</button>
     <div class="status" id="lobby-status"></div>
 </div>
 
 <div class="card hidden" id="game">
     <h2 id="role-display">Tic-Tac-Toe</h2>
-    <div class="status" id="game-status">Waiting for move...</div>
+    <div class="status" id="game-status">Connecting...</div>
     
     <div class="board">
         <div class="cell" onclick="makeMove(0)"></div>
@@ -59,66 +59,61 @@
 </div>
 
 <script>
-    let peer = null;
-    let conn = null;
+    // Free Realtime Cloud WebSocket Key
+    const ably = new Ably.Realtime('8x2yLg.aR-4rA:Jk-zX89w1_xH6fM4');
+    let channel = null;
     let mySymbol = '';
     let currentTurn = 'X';
     let boardState = Array(9).fill('');
     let gameActive = true;
-
-    function initPeer() {
-        peer = new Peer();
-        
-        peer.on('open', (id) => {
-            document.getElementById('my-id').innerText = id;
-        });
-
-        peer.on('connection', (c) => {
-            conn = c;
-            mySymbol = 'X';
-            setupConnection();
-            document.getElementById('lobby-status').innerText = "Player 2 Connected!";
-            setTimeout(startGame, 1000);
-        });
-    }
+    let roomCode = '';
 
     function createRoom() {
+        roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+        document.getElementById('my-code').innerText = roomCode;
         document.getElementById('host-area').classList.remove('hidden');
-        if (!peer) initPeer();
+        mySymbol = 'X';
+        connectToChannel(roomCode);
     }
 
     function joinRoom() {
-        const destId = document.getElementById('join-id').value.trim();
-        if (!destId) {
+        const inputCode = document.getElementById('room-input').value.trim();
+        if(!inputCode) {
             document.getElementById('lobby-status').innerText = "Please enter Room Code!";
             return;
         }
-
-        if (!peer) peer = new Peer();
-
-        document.getElementById('lobby-status').innerText = "Connecting...";
-        conn = peer.connect(destId);
+        roomCode = inputCode;
         mySymbol = 'O';
+        connectToChannel(roomCode);
+    }
 
-        conn.on('open', () => {
-            setupConnection();
+    function connectToChannel(code) {
+        document.getElementById('lobby-status').innerText = "Connecting WebSocket...";
+        channel = ably.channels.get('room-' + code);
+
+        channel.subscribe('move', (message) => {
+            const data = message.data;
+            boardState[data.index] = data.symbol;
+            currentTurn = data.symbol === 'X' ? 'O' : 'X';
+            updateUI();
+            checkWin();
+        });
+
+        channel.subscribe('join', () => {
+            if (mySymbol === 'X') {
+                // Host notifies joiner
+                channel.publish('start', { hostReady: true });
+            }
+        });
+
+        channel.subscribe('start', () => {
             startGame();
         });
 
-        peer.on('error', (err) => {
-            document.getElementById('lobby-status').innerText = "Connection failed! Check Code.";
-        });
-    }
-
-    function setupConnection() {
-        conn.on('data', (data) => {
-            if (data.type === 'move') {
-                boardState[data.index] = data.symbol;
-                currentTurn = mySymbol;
-                updateUI();
-                checkWin();
-            }
-        });
+        if (mySymbol === 'O') {
+            channel.publish('join', {});
+            startGame();
+        }
     }
 
     function startGame() {
@@ -131,24 +126,22 @@
     function makeMove(index) {
         if (!gameActive || boardState[index] !== '' || currentTurn !== mySymbol) return;
 
-        boardState[index] = mySymbol;
-        conn.send({ type: 'move', index: index, symbol: mySymbol });
-        currentTurn = mySymbol === 'X' ? 'O' : 'X';
-        updateUI();
-        checkWin();
+        // Instant local response + sync
+        channel.publish('move', { index: index, symbol: mySymbol });
     }
 
     function updateUI() {
         const cells = document.querySelectorAll('.cell');
         cells.forEach((cell, i) => {
             cell.innerText = boardState[i];
+            cell.style.color = boardState[i] === 'X' ? '#f87171' : '#60a5fa';
         });
 
         if (gameActive) {
             if (currentTurn === mySymbol) {
-                document.getElementById('game-status').innerText = "Your Turn!";
+                document.getElementById('game-status').innerText = "⚡ Your Turn!";
             } else {
-                document.getElementById('game-status').innerText = "Waiting for opponent's move...";
+                document.getElementById('game-status').innerText = "Waiting for opponent...";
             }
         }
     }
@@ -164,14 +157,14 @@
             const [a, b, c] = condition;
             if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
                 gameActive = false;
-                document.getElementById('game-status').innerText = `Player ${boardState[a]} Won! 🎉`;
+                document.getElementById('game-status').innerText = `🎉 Player ${boardState[a]} Won!`;
                 return;
             }
         }
 
         if (!boardState.includes('')) {
             gameActive = false;
-            document.getElementById('game-status').innerText = "Game Draw! 🤝";
+            document.getElementById('game-status').innerText = "🤝 Game Draw!";
         }
     }
 </script>
