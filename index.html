@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer & Solo Snake Game - Tapered Tail Edition</title>
+    <title>Multiplayer & Solo Snake Game - 6 Player Edition</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-    
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: manipulation; }
         body { 
@@ -25,20 +24,15 @@
             background: rgba(30, 41, 59, 0.75); 
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 2rem; 
+            padding: 1.5rem; 
             border-radius: 1.25rem; 
             box-shadow: 0 20px 40px rgba(0,0,0,0.5); 
             text-align: center; 
-            max-width: 450px; 
+            max-width: 480px; 
             width: 100%; 
-            animation: fadeIn 0.4s ease-in-out;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        h1 { margin-top: 0; color: #4ade80; font-size: 2rem; text-shadow: 0 0 15px rgba(74,222,128,0.4); }
-        h2 { color: #38bdf8; margin-top: 0; }
+        h1 { margin-top: 0; color: #4ade80; font-size: 1.8rem; text-shadow: 0 0 15px rgba(74,222,128,0.4); }
+        h2 { color: #38bdf8; margin-top: 0; font-size: 1.3rem; }
         .btn { 
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); 
             color: white; 
@@ -49,23 +43,13 @@
             cursor: pointer; 
             width: 100%; 
             margin-top: 10px; 
-            font-size: 1.05rem;
+            font-size: 1rem;
             box-shadow: 0 4px 15px rgba(34,197,94,0.3);
-            transition: all 0.2s ease;
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34,197,94,0.4); }
-        .btn-secondary {
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-            box-shadow: 0 4px 15px rgba(2,132,199,0.3);
-        }
-        .btn-solo {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            box-shadow: 0 4px 15px rgba(245,158,11,0.3);
-        }
-        .btn-help {
-            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-            box-shadow: 0 4px 15px rgba(139,92,246,0.3);
-        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-secondary { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); }
+        .btn-solo { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .btn-help { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
         input { 
             width: 100%; 
             padding: 0.85rem; 
@@ -75,10 +59,9 @@
             color: white; 
             margin-top: 10px; 
             text-align: center; 
-            font-size: 1.15rem; 
+            font-size: 1.1rem; 
             letter-spacing: 2px;
         }
-        input:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.3); }
         canvas { 
             background: #020617; 
             border: 2px solid #334155; 
@@ -88,11 +71,11 @@
             max-width: 100%; 
             height: auto; 
         }
-        .status { margin-top: 10px; font-weight: bold; color: #38bdf8; min-height: 24px; font-size: 0.95rem; }
+        .status { margin-top: 10px; font-weight: bold; color: #38bdf8; min-height: 24px; font-size: 0.9rem; }
         .hidden { display: none !important; }
         .code-display { 
             background: #090d16; 
-            padding: 14px; 
+            padding: 10px; 
             border-radius: 0.75rem; 
             font-size: 1.8rem; 
             font-weight: bold; 
@@ -100,36 +83,27 @@
             color: #4ade80; 
             margin: 10px 0; 
             border: 2px dashed #4ade80; 
-            text-shadow: 0 0 10px rgba(74,222,128,0.5);
         }
-        .scores { display: flex; justify-content: space-around; margin-top: 5px; font-weight: bold; font-size: 1.1rem; }
-        
-        /* Modal / Help Guide Styling */
+        .scores { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 6px; 
+            margin-top: 8px; 
+            font-weight: bold; 
+            font-size: 0.9rem; 
+        }
         .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.8);
             display: flex; align-items: center; justify-content: center;
-            z-index: 100;
-            padding: 20px;
+            z-index: 100; padding: 20px;
         }
         .modal-content {
-            background: #1e293b;
-            border: 1px solid #475569;
-            padding: 2rem;
-            border-radius: 1rem;
-            max-width: 420px;
-            width: 100%;
-            text-align: left;
-            box-shadow: 0 20px 25px rgba(0,0,0,0.5);
+            background: #1e293b; border: 1px solid #475569; padding: 1.5rem;
+            border-radius: 1rem; max-width: 420px; width: 100%; text-align: left;
         }
-        .modal-content h3 { color: #4ade80; margin-top: 0; text-align: center; font-size: 1.4rem; }
-        .modal-content ul { padding-left: 20px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; }
-        
-        /* Mobile Touch Controls */
-        .controls { display: grid; grid-template-columns: repeat(3, 60px); gap: 10px; justify-content: center; margin-top: 10px; }
-        .ctrl-btn { background: #334155; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 1.3rem; font-weight: bold; cursor: pointer; user-select: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .ctrl-btn:active { background: #475569; transform: scale(0.95); }
+        .controls { display: grid; grid-template-columns: repeat(3, 55px); gap: 8px; justify-content: center; margin-top: 10px; }
+        .ctrl-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 1.2rem; cursor: pointer; }
         .ctrl-up { grid-column: 2; }
         .ctrl-left { grid-column: 1; }
         .ctrl-down { grid-column: 2; }
@@ -139,52 +113,52 @@
 <body>
 
 <div class="card" id="lobby">
-    <h1>🐍 Realistic Snake Arena</h1>
-    <p style="color: #94a3b8; font-size: 0.90rem;">Multiplayer & Single Player Tapered Tail Mode</p>
+    <h1>🐍 6-Player Snake Arena</h1>
+    <p style="color: #94a3b8; font-size: 0.85rem;">Play Solo or up to 6 Players Live!</p>
     
-    <button class="btn btn-solo" onclick="startSoloGame()">👤 Play Solo (තනියම සෙල්ලම් කරන්න)</button>
-    <button class="btn" onclick="createRoom()">🚀 Create Room (Multiplayer)</button>
+    <button class="btn btn-solo" onclick="startSoloGame()">👤 Play Solo</button>
+    <button class="btn" onclick="createRoom()">🚀 Create Room (Host)</button>
     
-    <!-- Room Code Display Area -->
     <div id="host-area" class="hidden">
-        <p style="margin-bottom: 3px; color: #38bdf8; font-weight: bold;">ඔබේ Room Code එක:</p>
+        <p style="margin-bottom: 3px; color: #38bdf8; font-weight: bold;">Your Room Code:</p>
         <div class="code-display" id="my-code">---</div>
-        <p style="font-size:0.85rem; color:#facc15;" id="waiting-text">⏳ 2 වන ක්‍රීඩකයා සම්බන්ධ වන තෙක් බලමින්...</p>
+        <p style="font-size:0.85rem; color:#facc15;" id="players-count">👥 Joined Players: 1 / 6</p>
     </div>
 
     <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
 
-    <input type="text" id="room-input" placeholder="ROOM CODE එක ඇතුළත් කරන්න">
+    <input type="text" id="room-input" placeholder="ENTER ROOM CODE">
     <button class="btn btn-secondary" onclick="joinRoom()">🎮 Join Room</button>
-    <button class="btn btn-help" onclick="toggleHelp(true)">❓ ක්‍රීඩා කරන්නේ කෙසේද? (Help)</button>
+    <button class="btn btn-help" onclick="toggleHelp(true)">❓ How to Play</button>
     
     <div class="status" id="lobby-status"></div>
 </div>
 
-<!-- Help Modal (Sinhala) -->
 <div class="modal hidden" id="help-modal">
     <div class="modal-content">
-        <h3>📖 ක්‍රීඩා කරන්නේ කෙසේද?</h3>
-        <ul>
-            <li><b>Solo Mode:</b> බියක් නැතුව සෙල්ලම් කරන්න පුළුවන් (Game Over වීමක් නැත!).</li>
-            <li><b>Multiplayer (1 වන ක්‍රීඩකයා):</b> <b>'Create Room'</b> දී ලැබෙන කෝඩ් එක යාළුවාට දෙන්න.</li>
-            <li><b>Multiplayer (2 වන ක්‍රීඩකයා):</b> ලැබුණු කෝඩ් එක ඇතුළත් කර <b>'Join Room'</b> දෙන්න.</li>
-            <li><b>පාලනය (Controls):</b> ඊතල කුංචු (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons භාවිතා කරන්න.</li>
-            <li><b>තහවුරු කිරීම:</b> නගුට (Tail) පැත්තට යනවිට සර්පයාගේ ඇඟ කුඩා වී (Tapered) නියම සර්පයෙකුගේ පෙනුම ලැබේ!</li>
+        <h3 style="color:#4ade80; text-align:center;">📖 How to Play</h3>
+        <ul style="color:#cbd5e1; font-size:0.9rem; line-height:1.5;">
+            <li><b>Max Players:</b> Up to 6 players can battle simultaneously.</li>
+            <li><b>Colors:</b> P1(Green), P2(Blue), P3(Yellow), P4(Purple), P5(Cyan), P6(Pink).</li>
+            <li><b>Screen Wrapping:</b> Walls wrap around smoothly.</li>
+            <li><b>Controls:</b> Arrow keys or on-screen touch buttons.</li>
         </ul>
-        <button class="btn" onclick="toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
+        <button class="btn" onclick="toggleHelp(false)">Close</button>
     </div>
 </div>
 
 <div class="card hidden" id="game">
     <h2 id="game-title">⚡ Battle Arena</h2>
-    <div class="scores">
-        <span style="color:#4ade80;" id="p1-score">Score: 0</span>
-        <span style="color:#60a5fa; display:none;" id="p2-score">P2: 0</span>
+    <div class="scores" id="scores-container">
+        <span style="color:#22c55e;" id="p1-score">P1: 0</span>
+        <span style="color:#3b82f6;" id="p2-score">P2: 0</span>
+        <span style="color:#eab308;" id="p3-score">P3: 0</span>
+        <span style="color:#a855f7;" id="p4-score">P4: 0</span>
+        <span style="color:#06b6d4;" id="p5-score">P5: 0</span>
+        <span style="color:#ec4899;" id="p6-score">P6: 0</span>
     </div>
-    <canvas id="gameCanvas" width="360" height="360"></canvas>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
     
-    <!-- On-screen Touch Buttons -->
     <div class="controls">
         <button class="ctrl-btn ctrl-up" onclick="changeDirection(0, -1)">⬆️</button>
         <button class="ctrl-btn ctrl-left" onclick="changeDirection(-1, 0)">⬅️</button>
@@ -192,7 +166,7 @@
         <button class="ctrl-btn ctrl-right" onclick="changeDirection(1, 0)">➡️</button>
     </div>
 
-    <div class="status" id="game-status">ඊතල හෝ බටන් භාවිතයෙන් සර්පයා හැසිරවන්න!</div>
+    <div class="status" id="game-status">Use Arrow Keys or Buttons!</div>
 </div>
 
 <script>
@@ -209,23 +183,41 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const gridSize = 20;
-    const tileCount = 18;
+    const tileCount = 20; // Expanded grid size for 6 players
 
-    let snake1 = [{x: 4, y: 8}, {x: 3, y: 8}, {x: 2, y: 8}];
-    let dir1 = {x: 1, y: 0};
-    let score1 = 0;
+    let snakes = {
+        p1: [{x: 3, y: 3}],
+        p2: [{x: 16, y: 3}],
+        p3: [{x: 3, y: 10}],
+        p4: [{x: 16, y: 10}],
+        p5: [{x: 3, y: 16}],
+        p6: [{x: 16, y: 16}]
+    };
 
-    let snake2 = [{x: 13, y: 8}, {x: 14, y: 8}, {x: 15, y: 8}];
-    let dir2 = {x: -1, y: 0};
-    let score2 = 0;
+    let dirs = {
+        p1: {x: 1, y: 0},
+        p2: {x: -1, y: 0},
+        p3: {x: 1, y: 0},
+        p4: {x: -1, y: 0},
+        p5: {x: 1, y: 0},
+        p6: {x: -1, y: 0}
+    };
 
-    let food = {x: 8, y: 8};
+    let scores = { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0 };
+    let food = {x: 10, y: 10};
     let gameInterval = null;
 
+    const colors = {
+        p1: { head: '#14532d', body: '#22c55e' },
+        p2: { head: '#1e3a8a', body: '#3b82f6' },
+        p3: { head: '#713f12', body: '#eab308' },
+        p4: { head: '#581c87', body: '#a855f7' },
+        p5: { head: '#164e63', body: '#06b6d4' },
+        p6: { head: '#831843', body: '#ec4899' }
+    };
+
     function toggleHelp(show) {
-        const modal = document.getElementById('help-modal');
-        if (show) modal.classList.remove('hidden');
-        else modal.classList.add('hidden');
+        document.getElementById('help-modal').classList.toggle('hidden', !show);
     }
 
     function startSoloGame() {
@@ -233,83 +225,56 @@
         document.getElementById('lobby').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
         document.getElementById('game-title').innerText = "👤 Solo Practice Mode";
-        document.getElementById('p2-score').style.display = 'none';
-        document.getElementById('p1-score').innerText = `Score: 0`;
+        document.getElementById('scores-container').innerHTML = '<span style="color:#22c55e;" id="p1-score">Score: 0</span>';
 
-        snake1 = [{x: 8, y: 8}, {x: 7, y: 8}, {x: 6, y: 8}];
-        dir1 = {x: 1, y: 0};
-        score1 = 0;
+        snakes.p1 = [{x: 10, y: 10}];
+        dirs.p1 = {x: 1, y: 0};
+        scores.p1 = 0;
         spawnFood();
 
-        if (gameInterval) clearInterval(gameInterval);
         gameInterval = setInterval(() => {
-            let head1 = {
-                x: (snake1[0].x + dir1.x + tileCount) % tileCount,
-                y: (snake1[0].y + dir1.y + tileCount) % tileCount
+            let head = {
+                x: (snakes.p1[0].x + dirs.p1.x + tileCount) % tileCount,
+                y: (snakes.p1[0].y + dirs.p1.y + tileCount) % tileCount
             };
+            snakes.p1.unshift(head);
 
-            snake1.unshift(head1);
-            if (head1.x === food.x && head1.y === food.y) {
-                score1 += 10;
-                document.getElementById('p1-score').innerText = `Score: ${score1}`;
+            if (head.x === food.x && head.y === food.y) {
+                scores.p1 += 10;
+                document.getElementById('p1-score').innerText = `Score: ${scores.p1}`;
                 spawnFood();
             } else {
-                snake1.pop();
+                snakes.p1.pop();
             }
 
             drawSolo();
         }, 130);
     }
 
-    function drawSnake(snake, currentDir, headColor, bodyColor) {
-        const len = snake.length;
-
+    function drawSnake(snake, headColor, bodyColor, currentDir) {
+        let totalSegments = snake.length;
         snake.forEach((part, index) => {
-            let centerX = part.x * gridSize + gridSize / 2;
-            let centerY = part.y * gridSize + gridSize / 2;
+            let px = part.x * gridSize;
+            let py = part.y * gridSize;
+
+            let shrinkRatio = index / Math.max(totalSegments, 1);
+            let currentSize = Math.max(gridSize - (shrinkRatio * 8), 6);
+            let offset = (gridSize - currentSize) / 2;
+
+            ctx.fillStyle = (index === 0) ? headColor : bodyColor;
+            ctx.beginPath();
+            ctx.roundRect(px + offset, py + offset, currentSize, currentSize, index === 0 ? 5 : 3);
+            ctx.fill();
 
             if (index === 0) {
-                // Head - Darker color, rounded shape
-                let headRadius = (gridSize / 2) - 1;
-                ctx.fillStyle = headColor;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, headRadius, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Eyes setup according to current direction
                 ctx.fillStyle = '#ffffff';
-                let eyeOffset = 5;
-                let eye1X = centerX, eye1Y = centerY, eye2X = centerX, eye2Y = centerY;
-
-                if (currentDir.x === 1) { // Right
-                    eye1X = centerX + eyeOffset; eye1Y = centerY - 4;
-                    eye2X = centerX + eyeOffset; eye2Y = centerY + 4;
-                } else if (currentDir.x === -1) { // Left
-                    eye1X = centerX - eyeOffset; eye1Y = centerY - 4;
-                    eye2X = centerX - eyeOffset; eye2Y = centerY + 4;
-                } else if (currentDir.y === 1) { // Down
-                    eye1X = centerX - 4; eye1Y = centerY + eyeOffset;
-                    eye2X = centerX + 4; eye2Y = centerY + eyeOffset;
-                } else if (currentDir.y === -1) { // Up
-                    eye1X = centerX - 4; eye1Y = centerY - eyeOffset;
-                    eye2X = centerX + 4; eye2Y = centerY - eyeOffset;
-                }
-
-                ctx.beginPath();
-                ctx.arc(eye1X, eye1Y, 1.8, 0, Math.PI * 2);
-                ctx.arc(eye2X, eye2Y, 1.8, 0, Math.PI * 2);
-                ctx.fill();
-            } else {
-                // Tapering logic: Head size is ~90%, decreasing smoothly down to ~35% at the tail
-                let minScale = 0.35;
-                let maxScale = 0.88;
-                let scaleRatio = maxScale - ((index / (len - 1 || 1)) * (maxScale - minScale));
-                let radius = (gridSize / 2) * scaleRatio;
-
-                ctx.fillStyle = bodyColor;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                ctx.fill();
+                let eye1X = px + 5, eye1Y = py + 5, eye2X = px + 12, eye2Y = py + 12;
+                if (currentDir.x === 1) { eye1X = px + 12; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 12; }
+                else if (currentDir.x === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 4; eye2Y = py + 12; }
+                else if (currentDir.y === 1) { eye1X = px + 4; eye1Y = py + 12; eye2X = px + 12; eye2Y = py + 12; }
+                else if (currentDir.y === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 4; }
+                ctx.fillRect(eye1X, eye1Y, 3, 3);
+                ctx.fillRect(eye2X, eye2Y, 3, 3);
             }
         });
     }
@@ -318,34 +283,29 @@
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Render Food
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
         ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Render Snake 1 (Solo) - Dark Head (#14532d) & Neon Body (#22c55e) with tapered tail
-        drawSnake(snake1, dir1, '#14532d', '#22c55e');
+        drawSnake(snakes.p1, colors.p1.head, colors.p1.body, dirs.p1);
     }
 
     function createRoom() {
         isSolo = false;
         roomCode = Math.floor(1000 + Math.random() * 9000).toString();
         
-        const hostArea = document.getElementById('host-area');
-        hostArea.classList.remove('hidden');
+        document.getElementById('host-area').classList.remove('hidden');
         document.getElementById('my-code').innerText = roomCode;
 
         myRole = 'p1';
 
         db.ref('rooms/' + roomCode).set({
-            snake1: snake1,
-            snake2: snake2,
-            dir1: dir1,
-            dir2: dir2,
+            snakes: snakes,
+            dirs: dirs,
+            scores: scores,
             food: food,
-            score1: 0,
-            score2: 0,
+            playerCount: 1,
             status: 'waiting'
         });
 
@@ -355,39 +315,51 @@
     function joinRoom() {
         isSolo = false;
         const inputCode = document.getElementById('room-input').value.trim();
-        if(!inputCode) {
-            document.getElementById('lobby-status').innerText = "කරුණාකර Room Code එක ඇතුළත් කරන්න!";
-            return;
-        }
+        if(!inputCode) return;
+
         roomCode = inputCode;
-        myRole = 'p2';
 
         db.ref('rooms/' + roomCode).once('value', (snapshot) => {
             if (snapshot.exists()) {
+                let data = snapshot.val();
+                let count = data.playerCount || 1;
+                
+                if (count >= 6) {
+                    document.getElementById('lobby-status').innerText = "Room is Full! (Max 6 Players)";
+                    return;
+                }
+
+                count += 1;
+                myRole = 'p' + count;
+
+                db.ref('rooms/' + roomCode).update({ 
+                    playerCount: count,
+                    status: 'playing' 
+                });
+
                 listenForGame();
-                db.ref('rooms/' + roomCode).update({ status: 'playing' });
             } else {
-                document.getElementById('lobby-status').innerText = "Room එක හමුවුනේ නැත!";
+                document.getElementById('lobby-status').innerText = "Room not found!";
             }
         });
     }
 
     function listenForGame() {
-        document.getElementById('p2-score').style.display = 'inline';
         db.ref('rooms/' + roomCode).on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
 
-            snake1 = data.snake1 || snake1;
-            snake2 = data.snake2 || snake2;
-            score1 = data.score1 || 0;
-            score2 = data.score2 || 0;
+            snakes = data.snakes || snakes;
+            dirs = data.dirs || dirs;
+            scores = data.scores || scores;
             food = data.food || food;
-            dir1 = data.dir1 || dir1;
-            dir2 = data.dir2 || dir2;
 
-            updateScores();
-            drawMulti();
+            if (data.playerCount) {
+                document.getElementById('players-count').innerText = `👥 Joined Players: ${data.playerCount} / 6`;
+            }
+
+            updateScores(data.playerCount || 2);
+            drawMulti(data.playerCount || 2);
 
             if (data.status === 'playing') {
                 startGameUI();
@@ -401,41 +373,39 @@
     function startGameUI() {
         document.getElementById('lobby').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
-        document.getElementById('game-title').innerText = "⚡ Multiplayer Arena";
+        document.getElementById('game-title').innerText = `⚡ Live 6-Player Battle (${myRole.toUpperCase()})`;
     }
 
     function startHostLoop() {
         gameInterval = setInterval(() => {
-            let head1 = {
-                x: (snake1[0].x + dir1.x + tileCount) % tileCount,
-                y: (snake1[0].y + dir1.y + tileCount) % tileCount
-            };
-            snake1.unshift(head1);
-            if (head1.x === food.x && head1.y === food.y) {
-                score1 += 10;
-                spawnFood();
-            } else {
-                snake1.pop();
-            }
+            db.ref('rooms/' + roomCode).once('value', (snapshot) => {
+                let data = snapshot.val();
+                if (!data) return;
 
-            let head2 = {
-                x: (snake2[0].x + dir2.x + tileCount) % tileCount,
-                y: (snake2[0].y + dir2.y + tileCount) % tileCount
-            };
-            snake2.unshift(head2);
-            if (head2.x === food.x && head2.y === food.y) {
-                score2 += 10;
-                spawnFood();
-            } else {
-                snake2.pop();
-            }
+                let pCount = data.playerCount || 1;
 
-            db.ref('rooms/' + roomCode).update({
-                snake1: snake1,
-                snake2: snake2,
-                food: food,
-                score1: score1,
-                score2: score2
+                for (let i = 1; i <= pCount; i++) {
+                    let pKey = 'p' + i;
+                    let head = {
+                        x: (snakes[pKey][0].x + dirs[pKey].x + tileCount) % tileCount,
+                        y: (snakes[pKey][0].y + dirs[pKey].y + tileCount) % tileCount
+                    };
+
+                    snakes[pKey].unshift(head);
+
+                    if (head.x === food.x && head.y === food.y) {
+                        scores[pKey] += 10;
+                        spawnFood();
+                    } else {
+                        snakes[pKey].pop();
+                    }
+                }
+
+                db.ref('rooms/' + roomCode).update({
+                    snakes: snakes,
+                    scores: scores,
+                    food: food
+                });
             });
         }, 140);
     }
@@ -447,46 +417,44 @@
         };
     }
 
-    function updateScores() {
-        document.getElementById('p1-score').innerText = `P1: ${score1}`;
-        document.getElementById('p2-score').innerText = `P2: ${score2}`;
+    function updateScores(activePlayers) {
+        for (let i = 1; i <= 6; i++) {
+            let el = document.getElementById(`p${i}-score`);
+            if (i <= activePlayers) {
+                el.style.display = 'inline';
+                el.innerText = `P${i}: ${scores['p' + i]}`;
+            } else {
+                el.style.display = 'none';
+            }
+        }
     }
 
-    function drawMulti() {
+    function drawMulti(activePlayers) {
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Food
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
         ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Draw Player 1 (Green) & Player 2 (Blue) with Tapered Tail
-        drawSnake(snake1, dir1, '#14532d', '#22c55e');
-        drawSnake(snake2, dir2, '#1e3a8a', '#3b82f6');
+        for (let i = 1; i <= activePlayers; i++) {
+            let pKey = 'p' + i;
+            drawSnake(snakes[pKey], colors[pKey].head, colors[pKey].body, dirs[pKey]);
+        }
     }
 
     function changeDirection(x, y) {
         let newDir = {x: x, y: y};
-        
-        // Prevent 180 degree instant reversal
         if (isSolo) {
-            if ((newDir.x !== 0 && dir1.x === -newDir.x) || (newDir.y !== 0 && dir1.y === -newDir.y)) return;
-            dir1 = newDir;
+            dirs.p1 = newDir;
             return;
         }
-        
-        if (roomCode) {
-            if (myRole === 'p1') {
-                if ((newDir.x !== 0 && dir1.x === -newDir.x) || (newDir.y !== 0 && dir1.y === -newDir.y)) return;
-                dir1 = newDir;
-                db.ref('rooms/' + roomCode).update({ dir1: newDir });
-            } else if (myRole === 'p2') {
-                if ((newDir.x !== 0 && dir2.x === -newDir.x) || (newDir.y !== 0 && dir2.y === -newDir.y)) return;
-                dir2 = newDir;
-                db.ref('rooms/' + roomCode).update({ dir2: newDir });
-            }
+        if (roomCode && myRole) {
+            dirs[myRole] = newDir;
+            let updateObj = {};
+            updateObj[`dirs/${myRole}`] = newDir;
+            db.ref('rooms/' + roomCode).update(updateObj);
         }
     }
 
@@ -497,9 +465,7 @@
         if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
         if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
 
-        if (newDir) {
-            changeDirection(newDir.x, newDir.y);
-        }
+        if (newDir) changeDirection(newDir.x, newDir.y);
     });
 </script>
 </body>
