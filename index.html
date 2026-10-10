@@ -26,7 +26,7 @@
 
 <div class="card" id="lobby">
     <h1>🐍 Firebase Snake</h1>
-    <p>Room ekak sada Room Code eka anek kenata denna.</p>
+    <p>Room එකක් සාදා Room Code එක අනෙක් කෙනාට දෙන්න.</p>
     
     <button class="btn" onclick="createRoom()">Create Room</button>
     
@@ -114,6 +114,8 @@
 
         db.ref('rooms/' + roomCode).once('value', (snapshot) => {
             if (snapshot.exists()) {
+                // Immediately start listening and update status to playing
+                listenForGame();
                 db.ref('rooms/' + roomCode).update({ status: 'playing' });
             } else {
                 document.getElementById('lobby-status').innerText = "Room not found!";
