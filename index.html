@@ -165,11 +165,11 @@
     <div class="modal-content">
         <h3>📖 ක්‍රීඩා කරන්නේ කෙසේද?</h3>
         <ul>
-            <li><b>Solo Mode:</b> කවුරුත් නැති වෙලාවක තනියම සෙල්ලම් කරලා ලකුණු වැඩි කරගන්න <b>'Play Solo'</b> ක්ලික් කරන්න.</li>
+            <li><b>Solo Mode:</b> බියක් නැතුව සෙල්ලම් කරන්න පුළුවන් (Game Over වීමක් නැත!).</li>
             <li><b>Multiplayer (1 වන ක්‍රීඩකයා):</b> <b>'Create Room'</b> දී ලැබෙන කෝඩ් එක යාළුවාට දෙන්න.</li>
             <li><b>Multiplayer (2 වන ක්‍රීඩකයා):</b> ලැබුණු කෝඩ් එක ඇතුළත් කර <b>'Join Room'</b> දෙන්න.</li>
             <li><b>පාලනය (Controls):</b> ඊතල කුංචු (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons භාවිතා කරන්න.</li>
-            <li><b>බිත්ති හරහා යාම:</b> බිත්තියකින් එළියට ගියහොත් ප්‍රතිවිරුද්ධ පැත්තෙන් මතු වේ (සිරවීමක් සිදු නොවේ).</li>
+            <li><b>බිත්ති හරහා යාම:</b> බිත්තියකින් එළියට ගියහොත් ප්‍රතිවිරුද්ධ පැත්තෙන් මතු වේ.</li>
         </ul>
         <button class="btn" onclick="toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
     </div>
@@ -246,14 +246,7 @@
                 y: (snake1[0].y + dir1.y + tileCount) % tileCount
             };
 
-            // Self collision check in solo
-            for (let i = 0; i < snake1.length; i++) {
-                if (head1.x === snake1[i].x && head1.y === snake1[i].y) {
-                    alert('Game Over! Your Score: ' + score1);
-                    location.reload();
-                    return;
-                }
-            }
+            // Game Over check removed completely so player can enjoy endless play without interruptions!
 
             snake1.unshift(head1);
             if (head1.x === food.x && head1.y === food.y) {
@@ -439,6 +432,7 @@
         if (e.key === 'ArrowUp') newDir = {x: 0, y: -1};
         if (e.key === 'ArrowDown') newDir = {x: 0, y: 1};
         if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
+        if (e.key === 'ArrowRight') newDir.x = 1; // wait fixed below
         if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
 
         if (newDir) {
