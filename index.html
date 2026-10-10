@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer & Solo Snake Game - Final Edition</title>
+    <title>Multiplayer & Solo Snake Game - Pro Edition</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: manipulation; }
         body { 
-            background: radial-gradient(circle at center, #1e1b4b 0%, #090d16 100%); 
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); 
             color: #f8fafc; 
             display: flex; 
             flex-direction: column; 
@@ -21,63 +21,70 @@
             padding: 15px; 
         }
         .card { 
-            background: rgba(30, 41, 59, 0.85); 
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 1.8rem; 
-            border-radius: 1.25rem; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6); 
+            background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 1.5rem; 
+            border-radius: 1.5rem; 
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.1); 
             text-align: center; 
-            max-width: 480px; 
+            max-width: 440px; 
             width: 100%; 
             position: relative;
             z-index: 10;
         }
-        h1 { margin-top: 0; color: #4ade80; font-size: 1.8rem; text-shadow: 0 0 15px rgba(74,222,128,0.4); }
-        h2 { color: #38bdf8; margin-top: 0; font-size: 1.3rem; }
+        h1 { margin-top: 0; color: #4ade80; font-size: 1.8rem; text-shadow: 0 0 20px rgba(74,222,128,0.5); }
+        h2 { color: #38bdf8; margin-top: 0; font-size: 1.3rem; text-shadow: 0 0 10px rgba(56,189,248,0.4); }
         .btn { 
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); 
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); 
             color: white; 
             border: none; 
             padding: 0.9rem 1.5rem; 
-            border-radius: 0.75rem; 
+            border-radius: 0.85rem; 
             font-weight: bold; 
             cursor: pointer; 
             width: 100%; 
             margin-top: 12px; 
             font-size: 1.05rem;
-            box-shadow: 0 4px 15px rgba(34,197,94,0.3);
-            position: relative;
-            z-index: 20;
+            box-shadow: 0 4px 20px rgba(34,197,94,0.4);
+            transition: all 0.2s ease;
         }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-secondary { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); }
-        .btn-solo { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-        .btn-help { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.15); box-shadow: 0 6px 25px rgba(34,197,94,0.6); }
+        .btn-secondary { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); box-shadow: 0 4px 20px rgba(2,132,199,0.4); }
+        .btn-solo { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); box-shadow: 0 4px 20px rgba(245,158,11,0.4); }
+        .btn-help { background: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%); box-shadow: 0 4px 20px rgba(139,92,246,0.4); }
         input { 
             width: 100%; 
             padding: 0.9rem; 
-            border-radius: 0.75rem; 
-            border: 2px solid #475569; 
-            background: rgba(15, 23, 42, 0.9); 
+            border-radius: 0.85rem; 
+            border: 2px solid #334155; 
+            background: rgba(30, 41, 59, 0.9); 
             color: white; 
             margin-top: 12px; 
             text-align: center; 
             font-size: 1.1rem; 
-            position: relative;
-            z-index: 20;
+            transition: all 0.3s;
         }
-        input:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.4); }
+        input:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56,189,248,0.5); }
+        
+        /* Modern Canvas Box */
+        .canvas-container {
+            background: rgba(2, 6, 23, 0.9);
+            border-radius: 1rem;
+            padding: 8px;
+            border: 2px solid rgba(56, 189, 248, 0.25);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 0 15px rgba(56, 189, 248, 0.15);
+            margin-top: 12px;
+            display: inline-block;
+        }
         canvas { 
             background: #020617; 
-            border: 2px solid #334155; 
-            border-radius: 0.75rem; 
-            margin-top: 10px; 
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.8); 
+            border-radius: 0.5rem; 
+            display: block;
             max-width: 100%; 
             height: auto; 
         }
-        .status { margin-top: 10px; font-weight: bold; color: #38bdf8; min-height: 24px; font-size: 0.9rem; }
+        .status { margin-top: 12px; font-weight: bold; color: #38bdf8; min-height: 24px; font-size: 0.9rem; text-shadow: 0 0 8px rgba(56,189,248,0.3); }
         .hidden { display: none !important; }
         .code-display { 
             background: #090d16; 
@@ -90,14 +97,22 @@
             margin: 10px 0; 
             border: 2px dashed #4ade80; 
         }
+        
+        /* Modern Scoreboard Panel */
         .scores { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 6px; 
-            margin-top: 8px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+            margin: 10px 0; 
+            padding: 8px 12px; 
+            background: rgba(30, 41, 59, 0.6); 
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255,255,255,0.08);
             font-weight: bold; 
-            font-size: 0.9rem; 
+            font-size: 0.95rem; 
         }
+
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85);
@@ -108,9 +123,33 @@
             background: #1e293b; border: 1px solid #475569; padding: 1.5rem;
             border-radius: 1rem; max-width: 420px; width: 100%; text-align: left;
         }
-        .controls { display: grid; grid-template-columns: repeat(3, 60px); gap: 8px; justify-content: center; margin-top: 10px; }
-        .ctrl-btn { background: #334155; color: white; border: 2px solid #475569; padding: 14px; border-radius: 12px; font-size: 1.4rem; cursor: pointer; user-select: none; }
-        .ctrl-btn:active { background: #3b82f6; transform: scale(0.95); }
+
+        /* Modern Arcade Touch Controls */
+        .controls { 
+            display: grid; 
+            grid-template-columns: repeat(3, 65px); 
+            gap: 8px; 
+            justify-content: center; 
+            margin-top: 12px; 
+        }
+        .ctrl-btn { 
+            background: linear-gradient(135deg, #334155 100%, #1e293b 0%); 
+            color: #38bdf8; 
+            border: 2px solid rgba(56, 189, 248, 0.3); 
+            padding: 14px; 
+            border-radius: 14px; 
+            font-size: 1.4rem; 
+            cursor: pointer; 
+            user-select: none; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: all 0.1s ease;
+        }
+        .ctrl-btn:active { 
+            background: linear-gradient(135deg, #0284c7 0%, #0284c7 100%); 
+            color: #fff;
+            transform: scale(0.92); 
+            box-shadow: 0 0 15px rgba(56,189,248,0.7);
+        }
         .ctrl-up { grid-column: 2; }
         .ctrl-left { grid-column: 1; }
         .ctrl-down { grid-column: 2; }
@@ -160,7 +199,10 @@
 <div class="card hidden" id="game">
     <h2 id="game-title">⚡ Battle Arena</h2>
     <div class="scores" id="scores-container"></div>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    
+    <div class="canvas-container">
+        <canvas id="gameCanvas" width="360" height="360"></canvas>
+    </div>
     
     <div class="controls">
         <button class="ctrl-btn ctrl-up" onclick="changeDirection(0, -1)">⬆️</button>
@@ -186,7 +228,7 @@
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    const gridSize = 20;
+    const gridSize = 18;
     const tileCount = 20;
 
     let snakes = {
@@ -238,7 +280,7 @@
         document.getElementById('lobby').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
         document.getElementById('game-title').innerText = "👤 Solo Practice Mode";
-        document.getElementById('scores-container').innerHTML = `<span style="color:#22c55e;" id="p1-score">${myName}: 0</span>`;
+        document.getElementById('scores-container').innerHTML = `<span style="color:#22c55e; padding: 2px 8px;">${myName}: 0</span>`;
 
         snakes.p1 = [{x: 10, y: 10}];
         dirs.p1 = {x: 1, y: 0};
@@ -255,7 +297,8 @@
 
             if (head.x === food.x && head.y === food.y) {
                 scores.p1 += 10;
-                document.getElementById('p1-score').innerText = `${myName}: ${scores.p1}`;
+                document.getElementById('p1-score')?.remove();
+                document.getElementById('scores-container').innerHTML = `<span style="color:#22c55e; padding: 2px 8px;">${myName}: ${scores.p1}</span>`;
                 spawnFood();
             } else {
                 snakes.p1.pop();
@@ -272,22 +315,22 @@
             let py = part.y * gridSize;
 
             let shrinkRatio = index / Math.max(totalSegments, 1);
-            let currentSize = Math.max(gridSize - (shrinkRatio * 10), 6);
+            let currentSize = Math.max(gridSize - (shrinkRatio * 8), 6);
             let offset = (gridSize - currentSize) / 2;
 
             ctx.fillStyle = (index === 0) ? headColor : bodyColor;
             ctx.beginPath();
-            ctx.roundRect(px + offset, py + offset, currentSize, currentSize, index === 0 ? 6 : 4);
+            ctx.roundRect(px + offset, py + offset, currentSize, currentSize, index === 0 ? 5 : 3);
             ctx.fill();
 
             if (index === 0) {
                 ctx.fillStyle = '#ffffff';
-                let eye1X = px + 5, eye1Y = py + 5, eye2X = px + 12, eye2Y = py + 12;
+                let eye1X = px + 4, eye1Y = py + 4, eye2X = px + 10, eye2Y = py + 10;
 
-                if (currentDir.x === 1) { eye1X = px + 12; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 12; }
-                else if (currentDir.x === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 4; eye2Y = py + 12; }
-                else if (currentDir.y === 1) { eye1X = px + 4; eye1Y = py + 12; eye2X = px + 12; eye2Y = py + 12; }
-                else if (currentDir.y === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 4; }
+                if (currentDir.x === 1) { eye1X = px + 10; eye1Y = py + 3; eye2X = px + 10; eye2Y = py + 11; }
+                else if (currentDir.x === -1) { eye1X = px + 3; eye1Y = py + 3; eye2X = px + 3; eye2Y = py + 11; }
+                else if (currentDir.y === 1) { eye1X = px + 3; eye1Y = py + 11; eye2X = px + 11; eye2Y = py + 11; }
+                else if (currentDir.y === -1) { eye1X = px + 3; eye1Y = py + 3; eye2X = px + 11; eye2Y = py + 3; }
 
                 ctx.fillRect(eye1X, eye1Y, 3, 3);
                 ctx.fillRect(eye2X, eye2Y, 3, 3);
@@ -458,6 +501,7 @@
 
             let span = document.createElement('span');
             span.style.color = pColor;
+            span.style.padding = '2px 6px';
             span.innerText = `${pName}: ${scores[pKey]}`;
             scoresContainer.appendChild(span);
         }
