@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer Snake Game - Neon Edition</title>
+    <title>Multiplayer & Solo Snake Game - Neon Edition</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -47,7 +47,7 @@
             font-weight: bold; 
             cursor: pointer; 
             width: 100%; 
-            margin-top: 12px; 
+            margin-top: 10px; 
             font-size: 1.05rem;
             box-shadow: 0 4px 15px rgba(34,197,94,0.3);
             transition: all 0.2s ease;
@@ -57,12 +57,14 @@
             background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
             box-shadow: 0 4px 15px rgba(2,132,199,0.3);
         }
-        .btn-secondary:hover { box-shadow: 0 6px 20px rgba(2,132,199,0.4); }
+        .btn-solo {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 15px rgba(245,158,11,0.3);
+        }
         .btn-help {
             background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
             box-shadow: 0 4px 15px rgba(139,92,246,0.3);
         }
-        .btn-help:hover { box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
         input { 
             width: 100%; 
             padding: 0.85rem; 
@@ -70,7 +72,7 @@
             border: 1px solid #475569; 
             background: rgba(15, 23, 42, 0.8); 
             color: white; 
-            margin-top: 12px; 
+            margin-top: 10px; 
             text-align: center; 
             font-size: 1.15rem; 
             letter-spacing: 2px;
@@ -80,7 +82,7 @@
             background: #020617; 
             border: 2px solid #334155; 
             border-radius: 0.75rem; 
-            margin-top: 12px; 
+            margin-top: 10px; 
             box-shadow: inset 0 0 15px rgba(0,0,0,0.8); 
             max-width: 100%; 
             height: auto; 
@@ -91,15 +93,15 @@
             background: #090d16; 
             padding: 14px; 
             border-radius: 0.75rem; 
-            font-size: 2rem; 
+            font-size: 1.8rem; 
             font-weight: bold; 
             letter-spacing: 6px; 
             color: #4ade80; 
-            margin: 12px 0; 
+            margin: 10px 0; 
             border: 2px dashed #4ade80; 
             text-shadow: 0 0 10px rgba(74,222,128,0.5);
         }
-        .scores { display: flex; justify-content: space-around; margin-top: 8px; font-weight: bold; font-size: 1.1rem; }
+        .scores { display: flex; justify-content: space-around; margin-top: 5px; font-weight: bold; font-size: 1.1rem; }
         
         /* Modal / Help Guide Styling */
         .modal {
@@ -124,7 +126,7 @@
         .modal-content ul { padding-left: 20px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; }
         
         /* Mobile Touch Controls */
-        .controls { display: grid; grid-template-columns: repeat(3, 60px); gap: 10px; justify-content: center; margin-top: 12px; }
+        .controls { display: grid; grid-template-columns: repeat(3, 60px); gap: 10px; justify-content: center; margin-top: 10px; }
         .ctrl-btn { background: #334155; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 1.3rem; font-weight: bold; cursor: pointer; user-select: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .ctrl-btn:active { background: #475569; transform: scale(0.95); }
         .ctrl-up { grid-column: 2; }
@@ -137,18 +139,19 @@
 
 <div class="card" id="lobby">
     <h1>🐍 Neon Snake Arena</h1>
-    <p style="color: #94a3b8; font-size: 0.95rem;">Real-time Multiplayer Battle over Firebase</p>
+    <p style="color: #94a3b8; font-size: 0.90rem;">Multiplayer & Single Player Neon Game</p>
     
-    <button class="btn" onclick="createRoom()">🚀 Create Room</button>
+    <button class="btn btn-solo" onclick="startSoloGame()">👤 Play Solo (තනියම සෙල්ලම් කරන්න)</button>
+    <button class="btn" onclick="createRoom()">🚀 Create Room (Multiplayer)</button>
     
     <!-- Room Code Display Area -->
     <div id="host-area" class="hidden">
-        <p style="margin-bottom: 5px; color: #38bdf8; font-weight: bold;">ඔබේ Room Code එක:</p>
+        <p style="margin-bottom: 3px; color: #38bdf8; font-weight: bold;">ඔබේ Room Code එක:</p>
         <div class="code-display" id="my-code">---</div>
-        <p style="font-size:0.9rem; color:#facc15;" id="waiting-text">⏳ 2 වන ක්‍රීඩකයා සම්බන්ධ වන තෙක් බලමින්...</p>
+        <p style="font-size:0.85rem; color:#facc15;" id="waiting-text">⏳ 2 වන ක්‍රීඩකයා සම්බන්ධ වන තෙක් බලමින්...</p>
     </div>
 
-    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+    <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
 
     <input type="text" id="room-input" placeholder="ROOM CODE එක ඇතුළත් කරන්න">
     <button class="btn btn-secondary" onclick="joinRoom()">🎮 Join Room</button>
@@ -162,21 +165,21 @@
     <div class="modal-content">
         <h3>📖 ක්‍රීඩා කරන්නේ කෙසේද?</h3>
         <ul>
-            <li><b>1 වන ක්‍රීඩකයා (Host):</b> <b>'Create Room'</b> ක්ලික් කර ලැබෙන ඉලක්කම් 4 ක කෝඩ් එක 2 වන ක්‍රීඩකට දෙන්න.</li>
-            <li><b>2 වන ක්‍රීඩකයා (Joiner):</b> ලැබුණු කෝඩ් එක කොටුවට ඇතුළත් කර <b>'Join Room'</b> ක්ලික් කරන්න.</li>
-            <li><b>පාලනය (Controls):</b> පරිගණකයේ <b>Arrow Keys (ඊතල කුංචු)</b> හෝ ජංගම දුරකථනයේ තිරයේ ඇති <b>Touch Buttons</b> භාවිතා කරන්න.</li>
-            <li><b>බිත්ති හරහා යාම:</b> සර්පයා එක් පැත්තක බිත්තියකින් ගියහොත්, ප්‍රතිවිරුද්ධ පැත්තෙන් එළියට පැමිේ (සිරවීමක් සිදු නොවේ).</li>
-            <li><b>ලකුණු ලබා ගැනීම:</b> රතු පාට කෑම කෑවිට ලකුණු 10 බැඟින් ලකුණු වැඩි වේ!</li>
+            <li><b>Solo Mode:</b> කවුරුත් නැති වෙලාවක තනියම සෙල්ලම් කරලා ලකුණු වැඩි කරගන්න <b>'Play Solo'</b> ක්ලික් කරන්න.</li>
+            <li><b>Multiplayer (1 වන ක්‍රීඩකයා):</b> <b>'Create Room'</b> දී ලැබෙන කෝඩ් එක යාළුවාට දෙන්න.</li>
+            <li><b>Multiplayer (2 වන ක්‍රීඩකයා):</b> ලැබුණු කෝඩ් එක ඇතුළත් කර <b>'Join Room'</b> දෙන්න.</li>
+            <li><b>පාලනය (Controls):</b> ඊතල කුංචු (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons භාවිතා කරන්න.</li>
+            <li><b>බිත්ති හරහා යාම:</b> බිත්තියකින් එළියට ගියහොත් ප්‍රතිවිරුද්ධ පැත්තෙන් මතු වේ (සිරවීමක් සිදු නොවේ).</li>
         </ul>
         <button class="btn" onclick="toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
     </div>
 </div>
 
 <div class="card hidden" id="game">
-    <h2>⚡ Battle Arena</h2>
+    <h2 id="game-title">⚡ Battle Arena</h2>
     <div class="scores">
-        <span style="color:#4ade80;" id="p1-score">P1: 0</span>
-        <span style="color:#60a5fa;" id="p2-score">P2: 0</span>
+        <span style="color:#4ade80;" id="p1-score">Score: 0</span>
+        <span style="color:#60a5fa; display:none;" id="p2-score">P2: 0</span>
     </div>
     <canvas id="gameCanvas" width="360" height="360"></canvas>
     
@@ -200,6 +203,7 @@
 
     let roomCode = '';
     let myRole = ''; 
+    let isSolo = false;
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -223,7 +227,60 @@
         else modal.classList.add('hidden');
     }
 
+    function startSoloGame() {
+        isSolo = true;
+        document.getElementById('lobby').classList.add('hidden');
+        document.getElementById('game').classList.remove('hidden');
+        document.getElementById('game-title').innerText = "👤 Solo Practice Mode";
+        document.getElementById('p2-score').style.display = 'none';
+        document.getElementById('p1-score').innerText = `Score: 0`;
+
+        snake1 = [{x: 8, y: 8}];
+        dir1 = {x: 1, y: 0};
+        score1 = 0;
+        spawnFood();
+
+        gameInterval = setInterval(() => {
+            let head1 = {
+                x: (snake1[0].x + dir1.x + tileCount) % tileCount,
+                y: (snake1[0].y + dir1.y + tileCount) % tileCount
+            };
+
+            // Self collision check in solo
+            for (let i = 0; i < snake1.length; i++) {
+                if (head1.x === snake1[i].x && head1.y === snake1[i].y) {
+                    alert('Game Over! Your Score: ' + score1);
+                    location.reload();
+                    return;
+                }
+            }
+
+            snake1.unshift(head1);
+            if (head1.x === food.x && head1.y === food.y) {
+                score1 += 10;
+                document.getElementById('p1-score').innerText = `Score: ${score1}`;
+                spawnFood();
+            } else {
+                snake1.pop();
+            }
+
+            drawSolo();
+        }, 130);
+    }
+
+    function drawSolo() {
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+
+        ctx.fillStyle = '#4ade80';
+        snake1.forEach(part => ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2));
+    }
+
     function createRoom() {
+        isSolo = false;
         roomCode = Math.floor(1000 + Math.random() * 9000).toString();
         
         const hostArea = document.getElementById('host-area');
@@ -247,6 +304,7 @@
     }
 
     function joinRoom() {
+        isSolo = false;
         const inputCode = document.getElementById('room-input').value.trim();
         if(!inputCode) {
             document.getElementById('lobby-status').innerText = "කරුණාකර Room Code එක ඇතුළත් කරන්න!";
@@ -266,6 +324,7 @@
     }
 
     function listenForGame() {
+        document.getElementById('p2-score').style.display = 'inline';
         db.ref('rooms/' + roomCode).on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
@@ -279,7 +338,7 @@
             dir2 = data.dir2 || dir2;
 
             updateScores();
-            draw();
+            drawMulti();
 
             if (data.status === 'playing') {
                 startGameUI();
@@ -293,6 +352,7 @@
     function startGameUI() {
         document.getElementById('lobby').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
+        document.getElementById('game-title').innerText = "⚡ Multiplayer Arena";
     }
 
     function startHostLoop() {
@@ -343,7 +403,7 @@
         document.getElementById('p2-score').innerText = `P2: ${score2}`;
     }
 
-    function draw() {
+    function drawMulti() {
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -359,6 +419,10 @@
 
     function changeDirection(x, y) {
         let newDir = {x: x, y: y};
+        if (isSolo) {
+            dir1 = newDir;
+            return;
+        }
         if (roomCode) {
             if (myRole === 'p1') {
                 dir1 = newDir;
@@ -377,13 +441,17 @@
         if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
         if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
 
-        if (newDir && roomCode) {
-            if (myRole === 'p1') {
+        if (newDir) {
+            if (isSolo) {
                 dir1 = newDir;
-                db.ref('rooms/' + roomCode).update({ dir1: newDir });
-            } else if (myRole === 'p2') {
-                dir2 = newDir;
-                db.ref('rooms/' + roomCode).update({ dir2: newDir });
+            } else if (roomCode) {
+                if (myRole === 'p1') {
+                    dir1 = newDir;
+                    db.ref('rooms/' + roomCode).update({ dir1: newDir });
+                } else if (myRole === 'p2') {
+                    dir2 = newDir;
+                    db.ref('rooms/' + roomCode).update({ dir2: newDir });
+                }
             }
         }
     });
