@@ -32,6 +32,7 @@
     <div id="host-area" class="hidden">
         <p>ඔබේ Room Code එක:</p>
         <div class="code-display" id="my-code">---</div>
+        <p style="font-size:0.85rem; color:#94a3b8;">Waiting for Player 2 to join...</p>
     </div>
 
     <hr style="border-color:#334155; margin:20px 0;">
@@ -52,15 +53,14 @@
 </div>
 
 <script>
-    // --- FIREBASE CONFIGURATION ---
-    const firebaseConfig = {
-        databaseURL: "https://snake-6e0ae-default-rtdb.firebaseio.com/"
+   const firebaseConfig = {
+        databaseURL: "https://snake-6e0ae-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     let roomCode = '';
-    let myRole = ''; // 'p1' or 'p2'
+    let myRole = ''; 
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -84,7 +84,6 @@
         document.getElementById('host-area').classList.remove('hidden');
         myRole = 'p1';
 
-        // Initialize room data in Firebase
         db.ref('rooms/' + roomCode).set({
             snake1: snake1,
             snake2: snake2,
@@ -93,7 +92,7 @@
             food: food,
             score1: 0,
             score2: 0,
-            status: 'waiting'
+            status: 'playing'
         });
 
         listenForGame();
@@ -110,7 +109,6 @@
 
         db.ref('rooms/' + roomCode).once('value', (snapshot) => {
             if (snapshot.exists()) {
-                db.ref('rooms/' + roomCode).update({ status: 'playing' });
                 startGameUI();
                 listenForGame();
             } else {
@@ -135,6 +133,7 @@
             updateScores();
             draw();
 
+            // Automatically start game UI for both if room exists
             if (data.status === 'playing') {
                 startGameUI();
                 if (myRole === 'p1' && !gameInterval) {
@@ -151,7 +150,6 @@
 
     function startHostLoop() {
         gameInterval = setInterval(() => {
-            // Move Snake 1
             if (dir1.x !== 0 || dir1.y !== 0) {
                 let head1 = {x: snake1[0].x + dir1.x, y: snake1[0].y + dir1.y};
                 snake1.unshift(head1);
@@ -163,7 +161,6 @@
                 }
             }
 
-            // Move Snake 2
             if (dir2.x !== 0 || dir2.y !== 0) {
                 let head2 = {x: snake2[0].x + dir2.x, y: snake2[0].y + dir2.y};
                 snake2.unshift(head2);
@@ -175,7 +172,6 @@
                 }
             }
 
-            // Update Firebase database state
             db.ref('rooms/' + roomCode).update({
                 snake1: snake1,
                 snake2: snake2,
@@ -202,20 +198,16 @@
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Food
         ctx.fillStyle = '#ef4444';
         ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 
-        // Draw Snake 1 (Green)
         ctx.fillStyle = '#4ade80';
         snake1.forEach(part => ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2));
 
-        // Draw Snake 2 (Blue)
         ctx.fillStyle = '#60a5fa';
         snake2.forEach(part => ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2));
     }
 
-    // Keyboard Controls
     window.addEventListener('keydown', e => {
         let newDir = {x: 0, y: 0};
         if (e.key === 'ArrowUp') newDir = {x: 0, y: -1};
