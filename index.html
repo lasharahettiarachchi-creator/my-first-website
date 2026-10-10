@@ -246,8 +246,6 @@
                 y: (snake1[0].y + dir1.y + tileCount) % tileCount
             };
 
-            // Game Over check removed completely so player can enjoy endless play without interruptions!
-
             snake1.unshift(head1);
             if (head1.x === food.x && head1.y === food.y) {
                 score1 += 10;
@@ -265,11 +263,19 @@
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Food
         ctx.fillStyle = '#ef4444';
         ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 
-        ctx.fillStyle = '#4ade80';
-        snake1.forEach(part => ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2));
+        // Snake 1 (Solo) - Head is Darker Green (#15803d), Body Light Green (#4ade80)
+        snake1.forEach((part, index) => {
+            if (index === 0) {
+                ctx.fillStyle = '#15803d'; // Dark Green Head
+            } else {
+                ctx.fillStyle = '#4ade80'; // Bright Green Body
+            }
+            ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+        });
     }
 
     function createRoom() {
@@ -400,14 +406,29 @@
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Food
         ctx.fillStyle = '#ef4444';
         ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 
-        ctx.fillStyle = '#4ade80';
-        snake1.forEach(part => ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2));
+        // Snake 1 (P1 - Green): Dark Head (#15803d), Bright Body (#4ade80)
+        snake1.forEach((part, index) => {
+            if (index === 0) {
+                ctx.fillStyle = '#15803d'; // Dark Green
+            } else {
+                ctx.fillStyle = '#4ade80'; // Bright Green
+            }
+            ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+        });
 
-        ctx.fillStyle = '#60a5fa';
-        snake2.forEach(part => ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2));
+        // Snake 2 (P2 - Blue): Dark Head (#1d4ed8), Bright Body (#60a5fa)
+        snake2.forEach((part, index) => {
+            if (index === 0) {
+                ctx.fillStyle = '#1d4ed8'; // Dark Blue
+            } else {
+                ctx.fillStyle = '#60a5fa'; // Bright Blue
+            }
+            ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+        });
     }
 
     function changeDirection(x, y) {
@@ -432,7 +453,6 @@
         if (e.key === 'ArrowUp') newDir = {x: 0, y: -1};
         if (e.key === 'ArrowDown') newDir = {x: 0, y: 1};
         if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
-        if (e.key === 'ArrowRight') newDir.x = 1; // wait fixed below
         if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
 
         if (newDir) {
