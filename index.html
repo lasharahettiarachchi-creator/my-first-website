@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer & Solo Snake Game - Fixed Menu</title>
+    <title>Multiplayer & Solo Snake Game - Final Edition</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -150,7 +150,7 @@
         <ul style="color:#cbd5e1; font-size:0.9rem; line-height:1.6; padding-left: 20px;">
             <li><b>Player Name:</b> Game එකට යන්න කලින් ඔබේ නම ඇතුළත් කරන්න.</li>
             <li><b>Solo Mode:</b> තනියම සෙල්ලම් කරලා ලකුණු වැඩි කරගන්න <b>'Play Solo'</b> දෙන්න.</li>
-            <li><b>Multiplayer:</b> Room එකක් සාදා හෝ Join වී යාළුවන් සමඟ සෙල්ලම් කරන්න.</li>
+            <li><b>Multiplayer:</b> Room එකක් සාදා හෝ Join වී යාළුවන් සමඟ සෙල්ලම් කරන්න (උපරිම 6 දෙනෙක්).</li>
             <li><b>පාලනය (Controls):</b> ඊතල කුංචු (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons ක්ලික් කිරීමෙන් සර්පයා හැසිරවිය හැක.</li>
         </ul>
         <button class="btn" onclick="toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
@@ -265,7 +265,7 @@
         }, 130);
     }
 
-    function drawSnake(snake, headColor, bodyColor, currentDir, playerName) {
+    function drawSnake(snake, headColor, bodyColor, currentDir) {
         let totalSegments = snake.length;
         snake.forEach((part, index) => {
             let px = part.x * gridSize;
@@ -291,11 +291,6 @@
 
                 ctx.fillRect(eye1X, eye1Y, 3, 3);
                 ctx.fillRect(eye2X, eye2Y, 3, 3);
-
-                ctx.fillStyle = bodyColor;
-                ctx.font = 'bold 11px Segoe UI';
-                ctx.textAlign = 'center';
-                ctx.fillText(playerName, px + gridSize / 2, py - 4);
             }
         });
     }
@@ -309,7 +304,7 @@
         ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
         ctx.fill();
 
-        drawSnake(snakes.p1, colors.p1.head, colors.p1.body, dirs.p1, names.p1);
+        drawSnake(snakes.p1, colors.p1.head, colors.p1.body, dirs.p1);
     }
 
     function createRoom() {
@@ -479,8 +474,7 @@
 
         for (let i = 1; i <= activePlayers; i++) {
             let pKey = 'p' + i;
-            let pName = names[pKey] || `P${i}`;
-            drawSnake(snakes[pKey], colors[pKey].head, colors[pKey].body, dirs[pKey], pName);
+            drawSnake(snakes[pKey], colors[pKey].head, colors[pKey].body, dirs[pKey]);
         }
     }
 
