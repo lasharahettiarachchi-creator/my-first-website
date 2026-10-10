@@ -17,8 +17,8 @@
         input { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #334155; background: #0f172a; color: white; margin-top: 10px; text-align: center; font-size: 1.1rem; }
         canvas { background: #020617; border: 2px solid #334155; border-radius: 0.5rem; margin-top: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
         .status { margin-top: 10px; font-weight: bold; color: #38bdf8; min-height: 24px; }
-        .hidden { display: none; }
-        .code-display { background: #0f172a; padding: 10px; border-radius: 5px; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; color: #4ade80; margin: 10px 0; }
+        .hidden { display: none !important; }
+        .code-display { background: #0f172a; padding: 12px; border-radius: 8px; font-size: 1.8rem; font-weight: bold; letter-spacing: 4px; color: #4ade80; margin: 10px 0; border: 2px dashed #4ade80; }
         .scores { display: flex; justify-content: space-around; margin-top: 10px; font-weight: bold; font-size: 1.1rem; }
     </style>
 </head>
@@ -26,13 +26,15 @@
 
 <div class="card" id="lobby">
     <h1>🐍 Firebase Snake</h1>
-    <p>Room එකක් සාදා Room Code එක අනෙක් කෙනාට දෙන්න.</p>
+    <p>Room ekak sada Room Code eka anek kenata denna.</p>
     
     <button class="btn" onclick="createRoom()">Create Room</button>
+    
+    <!-- Room Code Display Area -->
     <div id="host-area" class="hidden">
-        <p>ඔබේ Room Code එක:</p>
-        <div class="code-display" id="my-code">---</div>
-        <p style="font-size:0.85rem; color:#94a3b8;">Waiting for Player 2 to join...</p>
+        <p style="margin-bottom: 5px; color: #38bdf8;">Your Room Code:</p>
+        <div class="code-display" id="my-code">generating...</div>
+        <p style="font-size:0.9rem; color:#facc15;" id="waiting-text">⏳ Waiting for Player 2 to join...</p>
     </div>
 
     <hr style="border-color:#334155; margin:20px 0;">
@@ -53,7 +55,7 @@
 </div>
 
 <script>
-   const firebaseConfig = {
+    const firebaseConfig = {
         databaseURL: "https://snake-6e0ae-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
     firebase.initializeApp(firebaseConfig);
@@ -67,32 +69,35 @@
     const gridSize = 20;
     const tileCount = 20;
 
-    let snake1 = [{x: 10, y: 10}];
-    let dir1 = {x: 0, y: 0};
+    let snake1 = [{x: 5, y: 10}];
+    let dir1 = {x: 1, y: 0};
     let score1 = 0;
 
-    let snake2 = [{x: 5, y: 5}];
-    let dir2 = {x: 0, y: 0};
+    let snake2 = [{x: 15, y: 10}];
+    let dir2 = {x: -1, y: 0};
     let score2 = 0;
 
-    let food = {x: 15, y: 15};
+    let food = {x: 10, y: 10};
     let gameInterval = null;
 
     function createRoom() {
         roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+        
+        const hostArea = document.getElementById('host-area');
+        hostArea.classList.remove('hidden');
         document.getElementById('my-code').innerText = roomCode;
-        document.getElementById('host-area').classList.remove('hidden');
+
         myRole = 'p1';
 
         db.ref('rooms/' + roomCode).set({
             snake1: snake1,
             snake2: snake2,
-            dir1: {x:0, y:0},
-            dir2: {x:0, y:0},
+            dir1: dir1,
+            dir2: dir2,
             food: food,
             score1: 0,
             score2: 0,
-            status: 'playing'
+            status: 'waiting'
         });
 
         listenForGame();
@@ -109,8 +114,7 @@
 
         db.ref('rooms/' + roomCode).once('value', (snapshot) => {
             if (snapshot.exists()) {
-                startGameUI();
-                listenForGame();
+                db.ref('rooms/' + roomCode).update({ status: 'playing' });
             } else {
                 document.getElementById('lobby-status').innerText = "Room not found!";
             }
@@ -133,7 +137,6 @@
             updateScores();
             draw();
 
-            // Automatically start game UI for both if room exists
             if (data.status === 'playing') {
                 startGameUI();
                 if (myRole === 'p1' && !gameInterval) {
@@ -150,26 +153,22 @@
 
     function startHostLoop() {
         gameInterval = setInterval(() => {
-            if (dir1.x !== 0 || dir1.y !== 0) {
-                let head1 = {x: snake1[0].x + dir1.x, y: snake1[0].y + dir1.y};
-                snake1.unshift(head1);
-                if (head1.x === food.x && head1.y === food.y) {
-                    score1 += 10;
-                    spawnFood();
-                } else {
-                    snake1.pop();
-                }
+            let head1 = {x: snake1[0].x + dir1.x, y: snake1[0].y + dir1.y};
+            snake1.unshift(head1);
+            if (head1.x === food.x && head1.y === food.y) {
+                score1 += 10;
+                spawnFood();
+            } else {
+                snake1.pop();
             }
 
-            if (dir2.x !== 0 || dir2.y !== 0) {
-                let head2 = {x: snake2[0].x + dir2.x, y: snake2[0].y + dir2.y};
-                snake2.unshift(head2);
-                if (head2.x === food.x && head2.y === food.y) {
-                    score2 += 10;
-                    spawnFood();
-                } else {
-                    snake2.pop();
-                }
+            let head2 = {x: snake2[0].x + dir2.x, y: snake2[0].y + dir2.y};
+            snake2.unshift(head2);
+            if (head2.x === food.x && head2.y === food.y) {
+                score2 += 10;
+                spawnFood();
+            } else {
+                snake2.pop();
             }
 
             db.ref('rooms/' + roomCode).update({
@@ -177,9 +176,11 @@
                 snake2: snake2,
                 food: food,
                 score1: score1,
-                score2: score2
+                score2: score2,
+                dir1: dir1,
+                dir2: dir2
             });
-        }, 120);
+        }, 130);
     }
 
     function spawnFood() {
@@ -209,16 +210,18 @@
     }
 
     window.addEventListener('keydown', e => {
-        let newDir = {x: 0, y: 0};
+        let newDir = null;
         if (e.key === 'ArrowUp') newDir = {x: 0, y: -1};
         if (e.key === 'ArrowDown') newDir = {x: 0, y: 1};
         if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
         if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
 
-        if ((newDir.x !== 0 || newDir.y !== 0) && roomCode) {
+        if (newDir && roomCode) {
             if (myRole === 'p1') {
+                dir1 = newDir;
                 db.ref('rooms/' + roomCode).update({ dir1: newDir });
             } else if (myRole === 'p2') {
+                dir2 = newDir;
                 db.ref('rooms/' + roomCode).update({ dir2: newDir });
             }
         }
