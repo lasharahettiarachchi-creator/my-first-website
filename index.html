@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer & Solo Snake Game - Pro Edition</title>
+    <title>Multiplayer & Solo Snake Game - Ultra Pro Edition</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -21,12 +21,12 @@
             padding: 15px; 
         }
         .card { 
-            background: rgba(15, 23, 42, 0.8); 
+            background: rgba(15, 23, 42, 0.85); 
             backdrop-filter: blur(16px);
             border: 1px solid rgba(56, 189, 248, 0.2);
             padding: 1.5rem; 
             border-radius: 1.5rem; 
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.1); 
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.15); 
             text-align: center; 
             max-width: 440px; 
             width: 100%; 
@@ -67,19 +67,18 @@
         }
         input:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56,189,248,0.5); }
         
-        /* Modern Canvas Box */
         .canvas-container {
-            background: rgba(2, 6, 23, 0.9);
-            border-radius: 1rem;
-            padding: 8px;
-            border: 2px solid rgba(56, 189, 248, 0.25);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 0 15px rgba(56, 189, 248, 0.15);
+            background: rgba(2, 6, 23, 0.95);
+            border-radius: 1.25rem;
+            padding: 10px;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 0 20px rgba(56, 189, 248, 0.2);
             margin-top: 12px;
             display: inline-block;
         }
         canvas { 
             background: #020617; 
-            border-radius: 0.5rem; 
+            border-radius: 0.8rem; 
             display: block;
             max-width: 100%; 
             height: auto; 
@@ -98,7 +97,6 @@
             border: 2px dashed #4ade80; 
         }
         
-        /* Modern Scoreboard Panel */
         .scores { 
             display: flex; 
             flex-wrap: wrap; 
@@ -124,31 +122,37 @@
             border-radius: 1rem; max-width: 420px; width: 100%; text-align: left;
         }
 
-        /* Modern Arcade Touch Controls */
+        /* Modern Glow Touch Controls */
         .controls { 
             display: grid; 
-            grid-template-columns: repeat(3, 65px); 
-            gap: 8px; 
+            grid-template-columns: repeat(3, 68px); 
+            gap: 10px; 
             justify-content: center; 
-            margin-top: 12px; 
+            margin-top: 15px; 
         }
         .ctrl-btn { 
-            background: linear-gradient(135deg, #334155 100%, #1e293b 0%); 
+            background: linear-gradient(145deg, #1e293b, #0f172a); 
             color: #38bdf8; 
-            border: 2px solid rgba(56, 189, 248, 0.3); 
-            padding: 14px; 
-            border-radius: 14px; 
-            font-size: 1.4rem; 
+            border: 2px solid rgba(56, 189, 248, 0.4); 
+            padding: 16px; 
+            border-radius: 18px; 
+            font-size: 1.6rem; 
             cursor: pointer; 
             user-select: none; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            transition: all 0.15s ease-in-out;
+            text-shadow: 0 0 10px rgba(56,189,248,0.6);
         }
         .ctrl-btn:active { 
-            background: linear-gradient(135deg, #0284c7 0%, #0284c7 100%); 
-            color: #fff;
-            transform: scale(0.92); 
-            box-shadow: 0 0 15px rgba(56,189,248,0.7);
+            background: linear-gradient(145deg, #0284c7, #0369a1); 
+            color: #ffffff;
+            border-color: #38bdf8;
+            transform: scale(0.90); 
+            box-shadow: 0 0 20px rgba(56,189,248,0.8);
+            text-shadow: 0 0 12px #ffffff;
         }
         .ctrl-up { grid-column: 2; }
         .ctrl-left { grid-column: 1; }
@@ -205,10 +209,10 @@
     </div>
     
     <div class="controls">
-        <button class="ctrl-btn ctrl-up" onclick="changeDirection(0, -1)">⬆️</button>
-        <button class="ctrl-btn ctrl-left" onclick="changeDirection(-1, 0)">⬅️</button>
-        <button class="ctrl-btn ctrl-down" onclick="changeDirection(0, 1)">⬇️</button>
-        <button class="ctrl-btn ctrl-right" onclick="changeDirection(1, 0)">➡️</button>
+        <button class="ctrl-btn ctrl-up" onclick="changeDirection(0, -1)">▲</button>
+        <button class="ctrl-btn ctrl-left" onclick="changeDirection(-1, 0)">◄</button>
+        <button class="ctrl-btn ctrl-down" onclick="changeDirection(0, 1)">▼</button>
+        <button class="ctrl-btn ctrl-right" onclick="changeDirection(1, 0)">►</button>
     </div>
 
     <div class="status" id="game-status">ඊතල හෝ බටන් භාවිතයෙන් සර්පයා හැසිරවන්න!</div>
@@ -255,12 +259,12 @@
     let gameInterval = null;
 
     const colors = {
-        p1: { head: '#14532d', body: '#22c55e' },
-        p2: { head: '#1e3a8a', body: '#3b82f6' },
-        p3: { head: '#713f12', body: '#eab308' },
-        p4: { head: '#581c87', body: '#a855f7' },
-        p5: { head: '#164e63', body: '#06b6d4' },
-        p6: { head: '#831843', body: '#ec4899' }
+        p1: { head: '#14532d', body: '#22c55e', glow: 'rgba(34,197,94,0.6)' },
+        p2: { head: '#1e3a8a', body: '#3b82f6', glow: 'rgba(59,130,246,0.6)' },
+        p3: { head: '#713f12', body: '#eab308', glow: 'rgba(234,179,8,0.6)' },
+        p4: { head: '#581c87', body: '#a855f7', glow: 'rgba(168,85,247,0.6)' },
+        p5: { head: '#164e63', body: '#06b6d4', glow: 'rgba(6,182,212,0.6)' },
+        p6: { head: '#831843', body: '#ec4899', glow: 'rgba(236,72,153,0.6)' }
     };
 
     function getPlayerName() {
@@ -297,7 +301,6 @@
 
             if (head.x === food.x && head.y === food.y) {
                 scores.p1 += 10;
-                document.getElementById('p1-score')?.remove();
                 document.getElementById('scores-container').innerHTML = `<span style="color:#22c55e; padding: 2px 8px;">${myName}: ${scores.p1}</span>`;
                 spawnFood();
             } else {
@@ -308,46 +311,61 @@
         }, 130);
     }
 
-    function drawSnake(snake, headColor, bodyColor, currentDir) {
+    /* REALISTIC BEAUTIFUL SNAKE RENDERING */
+    function drawSnake(snake, colorObj, currentDir) {
         let totalSegments = snake.length;
+
         snake.forEach((part, index) => {
             let px = part.x * gridSize;
             let py = part.y * gridSize;
 
+            // Tail Tapering Effect
             let shrinkRatio = index / Math.max(totalSegments, 1);
-            let currentSize = Math.max(gridSize - (shrinkRatio * 8), 6);
+            let currentSize = Math.max(gridSize - (shrinkRatio * 9), 6);
             let offset = (gridSize - currentSize) / 2;
 
-            ctx.fillStyle = (index === 0) ? headColor : bodyColor;
+            ctx.shadowBlur = (index === 0) ? 12 : 4;
+            ctx.shadowColor = colorObj.glow;
+
+            ctx.fillStyle = (index === 0) ? colorObj.head : colorObj.body;
             ctx.beginPath();
-            ctx.roundRect(px + offset, py + offset, currentSize, currentSize, index === 0 ? 5 : 3);
+            ctx.arc(px + gridSize / 2, py + gridSize / 2, currentSize / 2, 0, Math.PI * 2);
             ctx.fill();
 
+            // Directional Eye Placement
             if (index === 0) {
+                ctx.shadowBlur = 0;
                 ctx.fillStyle = '#ffffff';
-                let eye1X = px + 4, eye1Y = py + 4, eye2X = px + 10, eye2Y = py + 10;
+                let eye1X = px + 5, eye1Y = py + 5, eye2X = px + 11, eye2Y = py + 11;
 
-                if (currentDir.x === 1) { eye1X = px + 10; eye1Y = py + 3; eye2X = px + 10; eye2Y = py + 11; }
-                else if (currentDir.x === -1) { eye1X = px + 3; eye1Y = py + 3; eye2X = px + 3; eye2Y = py + 11; }
-                else if (currentDir.y === 1) { eye1X = px + 3; eye1Y = py + 11; eye2X = px + 11; eye2Y = py + 11; }
-                else if (currentDir.y === -1) { eye1X = px + 3; eye1Y = py + 3; eye2X = px + 11; eye2Y = py + 3; }
+                if (currentDir.x === 1) { eye1X = px + 12; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 12; }
+                else if (currentDir.x === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 4; eye2Y = py + 12; }
+                else if (currentDir.y === 1) { eye1X = px + 4; eye1Y = py + 12; eye2X = px + 12; eye2Y = py + 12; }
+                else if (currentDir.y === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 4; }
 
-                ctx.fillRect(eye1X, eye1Y, 3, 3);
-                ctx.fillRect(eye2X, eye2Y, 3, 3);
+                ctx.beginPath();
+                ctx.arc(eye1X, eye1Y, 2, 0, Math.PI * 2);
+                ctx.arc(eye2X, eye2Y, 2, 0, Math.PI * 2);
+                ctx.fill();
             }
         });
+        ctx.shadowBlur = 0;
     }
 
     function drawSolo() {
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Glowing Food
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ef4444';
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
         ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
 
-        drawSnake(snakes.p1, colors.p1.head, colors.p1.body, dirs.p1);
+        drawSnake(snakes.p1, colors.p1, dirs.p1);
     }
 
     function createRoom() {
@@ -511,14 +529,17 @@
         ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ef4444';
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
         ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
 
         for (let i = 1; i <= activePlayers; i++) {
             let pKey = 'p' + i;
-            drawSnake(snakes[pKey], colors[pKey].head, colors[pKey].body, dirs[pKey]);
+            drawSnake(snakes[pKey], colors[pKey], dirs[pKey]);
         }
     }
 
