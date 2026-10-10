@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Fast Multiplayer Tic-Tac-Toe</title>
-    <!-- Ultra Fast Pub/Sub Network CDN -->
-    <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
+    <title>Multiplayer Snake Game with Firebase</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .card { background: #1e293b; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; max-width: 400px; width: 100%; }
-        h1 { margin-top: 0; color: #38bdf8; }
-        .btn { background: #0284c7; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 1rem; }
-        .btn:hover { background: #0369a1; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; max-width: 450px; width: 100%; }
+        h1 { margin-top: 0; color: #4ade80; }
+        .btn { background: #22c55e; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 1rem; }
+        .btn:hover { background: #16a34a; }
         input { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #334155; background: #0f172a; color: white; margin-top: 10px; text-align: center; font-size: 1.1rem; }
-        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .cell { background: #334155; height: 90px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; user-select: none; transition: background 0.1s; }
-        .cell:hover { background: #475569; }
-        .status { margin-top: 15px; font-weight: bold; color: #38bdf8; min-height: 24px; }
+        canvas { background: #020617; border: 2px solid #334155; border-radius: 0.5rem; margin-top: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .status { margin-top: 10px; font-weight: bold; color: #38bdf8; min-height: 24px; }
         .hidden { display: none; }
-        .code-display { background: #0f172a; padding: 10px; border-radius: 5px; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; color: #4ade80; margin: 10px 0; word-break: break-all; }
+        .code-display { background: #0f172a; padding: 10px; border-radius: 5px; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; color: #4ade80; margin: 10px 0; }
+        .scores { display: flex; justify-content: space-around; margin-top: 10px; font-weight: bold; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
 <div class="card" id="lobby">
-    <h1>⚡ Ultra-Fast 2P Game</h1>
-    <p>1 වෙනි Computer එකෙන් Create කරලා, 2 වෙනි Computer එකෙන් Join වෙන්න.</p>
+    <h1>🐍 Firebase Snake</h1>
+    <p>Room එකක් සාදා Room Code එක අනෙක් කෙනාට දෙන්න.</p>
     
-    <button class="btn" onclick="createRoom()">Create Game Room</button>
+    <button class="btn" onclick="createRoom()">Create Room</button>
     <div id="host-area" class="hidden">
         <p>ඔබේ Room Code එක:</p>
         <div class="code-display" id="my-code">---</div>
@@ -36,44 +36,67 @@
 
     <hr style="border-color:#334155; margin:20px 0;">
 
-    <input type="text" id="room-input" placeholder="Enter Room Code (e.g. 4521)">
-    <button class="btn" style="background:#16a34a;" onclick="joinRoom()">Join Game Room</button>
+    <input type="text" id="room-input" placeholder="Enter Room Code">
+    <button class="btn" style="background:#0284c7;" onclick="joinRoom()">Join Room</button>
     <div class="status" id="lobby-status"></div>
 </div>
 
 <div class="card hidden" id="game">
-    <h2 id="role-display">Tic-Tac-Toe</h2>
-    <div class="status" id="game-status">Connecting...</div>
-    
-    <div class="board">
-        <div class="cell" onclick="makeMove(0)"></div>
-        <div class="cell" onclick="makeMove(1)"></div>
-        <div class="cell" onclick="makeMove(2)"></div>
-        <div class="cell" onclick="makeMove(3)"></div>
-        <div class="cell" onclick="makeMove(4)"></div>
-        <div class="cell" onclick="makeMove(5)"></div>
-        <div class="cell" onclick="makeMove(6)"></div>
-        <div class="cell" onclick="makeMove(7)"></div>
-        <div class="cell" onclick="makeMove(8)"></div>
+    <h2>🐍 Live Snake Battle</h2>
+    <div class="scores">
+        <span style="color:#4ade80;" id="p1-score">P1 Score: 0</span>
+        <span style="color:#60a5fa;" id="p2-score">P2 Score: 0</span>
     </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="status" id="game-status">Use Arrow Keys to Move!</div>
 </div>
 
 <script>
-    // Free Realtime Cloud WebSocket Key
-    const ably = new Ably.Realtime('8x2yLg.aR-4rA:Jk-zX89w1_xH6fM4');
-    let channel = null;
-    let mySymbol = '';
-    let currentTurn = 'X';
-    let boardState = Array(9).fill('');
-    let gameActive = true;
+    // --- FIREBASE CONFIGURATION ---
+    const firebaseConfig = {
+        databaseURL: "https://snake-6e0ae-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     let roomCode = '';
+    let myRole = ''; // 'p1' or 'p2'
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const gridSize = 20;
+    const tileCount = 20;
+
+    let snake1 = [{x: 10, y: 10}];
+    let dir1 = {x: 0, y: 0};
+    let score1 = 0;
+
+    let snake2 = [{x: 5, y: 5}];
+    let dir2 = {x: 0, y: 0};
+    let score2 = 0;
+
+    let food = {x: 15, y: 15};
+    let gameInterval = null;
 
     function createRoom() {
         roomCode = Math.floor(1000 + Math.random() * 9000).toString();
         document.getElementById('my-code').innerText = roomCode;
         document.getElementById('host-area').classList.remove('hidden');
-        mySymbol = 'X';
-        connectToChannel(roomCode);
+        myRole = 'p1';
+
+        // Initialize room data in Firebase
+        db.ref('rooms/' + roomCode).set({
+            snake1: snake1,
+            snake2: snake2,
+            dir1: {x:0, y:0},
+            dir2: {x:0, y:0},
+            food: food,
+            score1: 0,
+            score2: 0,
+            status: 'waiting'
+        });
+
+        listenForGame();
     }
 
     function joinRoom() {
@@ -83,90 +106,131 @@
             return;
         }
         roomCode = inputCode;
-        mySymbol = 'O';
-        connectToChannel(roomCode);
-    }
+        myRole = 'p2';
 
-    function connectToChannel(code) {
-        document.getElementById('lobby-status').innerText = "Connecting WebSocket...";
-        channel = ably.channels.get('room-' + code);
-
-        channel.subscribe('move', (message) => {
-            const data = message.data;
-            boardState[data.index] = data.symbol;
-            currentTurn = data.symbol === 'X' ? 'O' : 'X';
-            updateUI();
-            checkWin();
-        });
-
-        channel.subscribe('join', () => {
-            if (mySymbol === 'X') {
-                // Host notifies joiner
-                channel.publish('start', { hostReady: true });
+        db.ref('rooms/' + roomCode).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                db.ref('rooms/' + roomCode).update({ status: 'playing' });
+                startGameUI();
+                listenForGame();
+            } else {
+                document.getElementById('lobby-status').innerText = "Room not found!";
             }
         });
-
-        channel.subscribe('start', () => {
-            startGame();
-        });
-
-        if (mySymbol === 'O') {
-            channel.publish('join', {});
-            startGame();
-        }
     }
 
-    function startGame() {
+    function listenForGame() {
+        db.ref('rooms/' + roomCode).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            snake1 = data.snake1 || snake1;
+            snake2 = data.snake2 || snake2;
+            score1 = data.score1 || 0;
+            score2 = data.score2 || 0;
+            food = data.food || food;
+            dir1 = data.dir1 || dir1;
+            dir2 = data.dir2 || dir2;
+
+            updateScores();
+            draw();
+
+            if (data.status === 'playing') {
+                startGameUI();
+                if (myRole === 'p1' && !gameInterval) {
+                    startHostLoop();
+                }
+            }
+        });
+    }
+
+    function startGameUI() {
         document.getElementById('lobby').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
-        document.getElementById('role-display').innerText = `You are Player: ${mySymbol}`;
-        updateUI();
     }
 
-    function makeMove(index) {
-        if (!gameActive || boardState[index] !== '' || currentTurn !== mySymbol) return;
+    function startHostLoop() {
+        gameInterval = setInterval(() => {
+            // Move Snake 1
+            if (dir1.x !== 0 || dir1.y !== 0) {
+                let head1 = {x: snake1[0].x + dir1.x, y: snake1[0].y + dir1.y};
+                snake1.unshift(head1);
+                if (head1.x === food.x && head1.y === food.y) {
+                    score1 += 10;
+                    spawnFood();
+                } else {
+                    snake1.pop();
+                }
+            }
 
-        // Instant local response + sync
-        channel.publish('move', { index: index, symbol: mySymbol });
+            // Move Snake 2
+            if (dir2.x !== 0 || dir2.y !== 0) {
+                let head2 = {x: snake2[0].x + dir2.x, y: snake2[0].y + dir2.y};
+                snake2.unshift(head2);
+                if (head2.x === food.x && head2.y === food.y) {
+                    score2 += 10;
+                    spawnFood();
+                } else {
+                    snake2.pop();
+                }
+            }
+
+            // Update Firebase database state
+            db.ref('rooms/' + roomCode).update({
+                snake1: snake1,
+                snake2: snake2,
+                food: food,
+                score1: score1,
+                score2: score2
+            });
+        }, 120);
     }
 
-    function updateUI() {
-        const cells = document.querySelectorAll('.cell');
-        cells.forEach((cell, i) => {
-            cell.innerText = boardState[i];
-            cell.style.color = boardState[i] === 'X' ? '#f87171' : '#60a5fa';
-        });
+    function spawnFood() {
+        food = {
+            x: Math.floor(Math.random() * tileCount),
+            y: Math.floor(Math.random() * tileCount)
+        };
+    }
 
-        if (gameActive) {
-            if (currentTurn === mySymbol) {
-                document.getElementById('game-status').innerText = "⚡ Your Turn!";
-            } else {
-                document.getElementById('game-status').innerText = "Waiting for opponent...";
+    function updateScores() {
+        document.getElementById('p1-score').innerText = `Player 1: ${score1}`;
+        document.getElementById('p2-score').innerText = `Player 2: ${score2}`;
+    }
+
+    function draw() {
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Food
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+
+        // Draw Snake 1 (Green)
+        ctx.fillStyle = '#4ade80';
+        snake1.forEach(part => ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2));
+
+        // Draw Snake 2 (Blue)
+        ctx.fillStyle = '#60a5fa';
+        snake2.forEach(part => ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2));
+    }
+
+    // Keyboard Controls
+    window.addEventListener('keydown', e => {
+        let newDir = {x: 0, y: 0};
+        if (e.key === 'ArrowUp') newDir = {x: 0, y: -1};
+        if (e.key === 'ArrowDown') newDir = {x: 0, y: 1};
+        if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
+        if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
+
+        if ((newDir.x !== 0 || newDir.y !== 0) && roomCode) {
+            if (myRole === 'p1') {
+                db.ref('rooms/' + roomCode).update({ dir1: newDir });
+            } else if (myRole === 'p2') {
+                db.ref('rooms/' + roomCode).update({ dir2: newDir });
             }
         }
-    }
-
-    function checkWin() {
-        const wins = [
-            [0,1,2],[3,4,5],[6,7,8],
-            [0,3,6],[1,4,7],[2,5,8],
-            [0,4,8],[2,4,6]
-        ];
-
-        for (let condition of wins) {
-            const [a, b, c] = condition;
-            if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
-                gameActive = false;
-                document.getElementById('game-status').innerText = `🎉 Player ${boardState[a]} Won!`;
-                return;
-            }
-        }
-
-        if (!boardState.includes('')) {
-            gameActive = false;
-            document.getElementById('game-status').innerText = "🤝 Game Draw!";
-        }
-    }
+    });
 </script>
 </body>
 </html>
