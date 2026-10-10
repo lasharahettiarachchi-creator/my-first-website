@@ -1,175 +1,179 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2 Player Tic-Tac-Toe Game</title>
+    <title>Multiplayer Tic-Tac-Toe</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .status {
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px 20px;
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
-        }
-        .board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        }
-        .cell {
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            border-radius: 10px;
-            font-size: 2.5rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease-in-out;
-            color: #333;
-        }
-        .cell:hover {
-            background: #fff;
-            transform: scale(1.03);
-        }
-        .cell.x { color: #e74c3c; }
-        .cell.o { color: #3498db; }
-        
-        .restart-btn {
-            margin-top: 25px;
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #fff;
-            background-color: #27ae60;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: background 0.3s, transform 0.2s;
-        }
-        .restart-btn:hover {
-            background-color: #2ecc71;
-            transform: translateY(-2px);
-        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; max-width: 400px; width: 100%; }
+        h1 { margin-top: 0; color: #38bdf8; }
+        .btn { background: #0284c7; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 1rem; }
+        .btn:hover { background: #0369a1; }
+        input { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #334155; background: #0f172a; color: white; margin-top: 10px; text-align: center; font-size: 1.1rem; }
+        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+        .cell { background: #334155; height: 90px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; user-select: none; }
+        .cell:hover { background: #475569; }
+        .status { margin-top: 15px; font-weight: bold; color: #38bdf8; min-height: 24px; }
+        .hidden { display: none; }
+        .code-display { background: #0f172a; padding: 10px; border-radius: 5px; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; color: #4ade80; margin: 10px 0; word-break: break-all; }
     </style>
 </head>
 <body>
 
-    <h1>🎮 2 Player Tic-Tac-Toe</h1>
-    <div class="status" id="status">Player X ගේ වාරය</div>
+<div class="card" id="lobby">
+    <h1>Online 2-Player Game</h1>
+    <p>Palamu Computer eken Room ID eka Generate karala, Dwithiya Computer ekata danna.</p>
     
-    <div class="board" id="board">
-        <button class="cell" data-index="0"></button>
-        <button class="cell" data-index="1"></button>
-        <button class="cell" data-index="2"></button>
-        <button class="cell" data-index="3"></button>
-        <button class="cell" data-index="4"></button>
-        <button class="cell" data-index="5"></button>
-        <button class="cell" data-index="6"></button>
-        <button class="cell" data-index="7"></button>
-        <button class="cell" data-index="8"></button>
+    <button class="btn" onclick="createRoom()">Create New Room</button>
+    <div id="host-area" class="hidden">
+        <p>Obage Room Code eka:</p>
+        <div class="code-display" id="my-id">Generating...</div>
+        <p style="font-size:0.85rem; color:#94a3b8;">Anith computer ekata me code eka denna.</p>
     </div>
 
-    <button class="restart-btn" onclick="restartGame()">නැවත පටන් ගන්න 🔄</button>
+    <hr style="border-color:#334155; margin:20px 0;">
 
-    <script>
+    <input type="text" id="join-id" placeholder="Enter Room Code Here">
+    <button class="btn" style="background:#16a34a;" onclick="joinRoom()">Join Game Room</button>
+    <div class="status" id="lobby-status"></div>
+</div>
+
+<div class="card hidden" id="game">
+    <h2 id="role-display">Tic-Tac-Toe</h2>
+    <div class="status" id="game-status">Waiting for move...</div>
+    
+    <div class="board">
+        <div class="cell" onclick="makeMove(0)"></div>
+        <div class="cell" onclick="makeMove(1)"></div>
+        <div class="cell" onclick="makeMove(2)"></div>
+        <div class="cell" onclick="makeMove(3)"></div>
+        <div class="cell" onclick="makeMove(4)"></div>
+        <div class="cell" onclick="makeMove(5)"></div>
+        <div class="cell" onclick="makeMove(6)"></div>
+        <div class="cell" onclick="makeMove(7)"></div>
+        <div class="cell" onclick="makeMove(8)"></div>
+    </div>
+</div>
+
+<script>
+    let peer = null;
+    let conn = null;
+    let mySymbol = '';
+    let currentTurn = 'X';
+    let boardState = Array(9).fill('');
+    let gameActive = true;
+
+    function initPeer() {
+        peer = new Peer();
+        
+        peer.on('open', (id) => {
+            document.getElementById('my-id').innerText = id;
+        });
+
+        peer.on('connection', (c) => {
+            conn = c;
+            mySymbol = 'X';
+            setupConnection();
+            document.getElementById('lobby-status').innerText = "Player 2 Connected!";
+            setTimeout(startGame, 1000);
+        });
+    }
+
+    function createRoom() {
+        document.getElementById('host-area').classList.remove('hidden');
+        if (!peer) initPeer();
+    }
+
+    function joinRoom() {
+        const destId = document.getElementById('join-id').value.trim();
+        if (!destId) {
+            document.getElementById('lobby-status').innerText = "Please enter Room Code!";
+            return;
+        }
+
+        if (!peer) peer = new Peer();
+
+        document.getElementById('lobby-status').innerText = "Connecting...";
+        conn = peer.connect(destId);
+        mySymbol = 'O';
+
+        conn.on('open', () => {
+            setupConnection();
+            startGame();
+        });
+
+        peer.on('error', (err) => {
+            document.getElementById('lobby-status').innerText = "Connection failed! Check Code.";
+        });
+    }
+
+    function setupConnection() {
+        conn.on('data', (data) => {
+            if (data.type === 'move') {
+                boardState[data.index] = data.symbol;
+                currentTurn = mySymbol;
+                updateUI();
+                checkWin();
+            }
+        });
+    }
+
+    function startGame() {
+        document.getElementById('lobby').classList.add('hidden');
+        document.getElementById('game').classList.remove('hidden');
+        document.getElementById('role-display').innerText = `You are Player: ${mySymbol}`;
+        updateUI();
+    }
+
+    function makeMove(index) {
+        if (!gameActive || boardState[index] !== '' || currentTurn !== mySymbol) return;
+
+        boardState[index] = mySymbol;
+        conn.send({ type: 'move', index: index, symbol: mySymbol });
+        currentTurn = mySymbol === 'X' ? 'O' : 'X';
+        updateUI();
+        checkWin();
+    }
+
+    function updateUI() {
         const cells = document.querySelectorAll('.cell');
-        const statusText = document.getElementById('status');
-        let currentPlayer = 'X';
-        let gameState = ["", "", "", "", "", "", "", "", ""];
-        let gameActive = true;
+        cells.forEach((cell, i) => {
+            cell.innerText = boardState[i];
+        });
 
-        const winningConditions = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-            [0, 4, 8], [2, 4, 6]             // Diagonals
+        if (gameActive) {
+            if (currentTurn === mySymbol) {
+                document.getElementById('game-status').innerText = "Your Turn!";
+            } else {
+                document.getElementById('game-status').innerText = "Waiting for opponent's move...";
+            }
+        }
+    }
+
+    function checkWin() {
+        const wins = [
+            [0,1,2],[3,4,5],[6,7,8],
+            [0,3,6],[1,4,7],[2,5,8],
+            [0,4,8],[2,4,6]
         ];
 
-        function handleCellClick(e) {
-            const clickedCell = e.target;
-            const clickedIndex = parseInt(clickedCell.getAttribute('data-index'));
-
-            if (gameState[clickedIndex] !== "" || !gameActive) {
-                return;
-            }
-
-            gameState[clickedIndex] = currentPlayer;
-            clickedCell.textContent = currentPlayer;
-            clickedCell.classList.add(currentPlayer.toLowerCase());
-
-            checkResult();
-        }
-
-        function checkResult() {
-            let roundWon = false;
-
-            for (let i = 0; i < winningConditions.length; i++) {
-                const [a, b, c] = winningConditions[i];
-                if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
-                    roundWon = true;
-                    break;
-                }
-            }
-
-            if (roundWon) {
-                statusText.textContent = `🎉 Player ${currentPlayer} ජයග්‍රහණය කළා!`;
+        for (let condition of wins) {
+            const [a, b, c] = condition;
+            if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
                 gameActive = false;
+                document.getElementById('game-status').innerText = `Player ${boardState[a]} Won! 🎉`;
                 return;
             }
-
-            if (!gameState.includes("")) {
-                statusText.textContent = "🤝 සම වුණා! (Draw)";
-                gameActive = false;
-                return;
-            }
-
-            currentPlayer = currentPlayer === "X" ? "O" : "X";
-            statusText.textContent = `Player ${currentPlayer} ගේ වාරය`;
         }
 
-        function restartGame() {
-            currentPlayer = "X";
-            gameState = ["", "", "", "", "", "", "", "", ""];
-            gameActive = true;
-            statusText.textContent = `Player X ගේ වාරය`;
-            cells.forEach(cell => {
-                cell.textContent = "";
-                cell.classList.remove('x', 'o');
-            });
+        if (!boardState.includes('')) {
+            gameActive = false;
+            document.getElementById('game-status').innerText = "Game Draw! 🤝";
         }
-
-        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-    </script>
+    }
+</script>
 </body>
 </html>
