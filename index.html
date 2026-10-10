@@ -1,16 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Free Website</title>
+    <title>2 Player Tic-Tac-Toe Game</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; color: #333; }
-        h1 { color: #2c3e50; }
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .status {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 10px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            color: #333;
+        }
+        .cell:hover {
+            background: #fff;
+            transform: scale(1.03);
+        }
+        .cell.x { color: #e74c3c; }
+        .cell.o { color: #3498db; }
+        
+        .restart-btn {
+            margin-top: 25px;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: #27ae60;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: background 0.3s, transform 0.2s;
+        }
+        .restart-btn:hover {
+            background-color: #2ecc71;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
-    <h1>Hello World!</h1>
-    <p>My website is now live on GitHub Pages for completely free!</p>
+
+    <h1>🎮 2 Player Tic-Tac-Toe</h1>
+    <div class="status" id="status">Player X ගේ වාරය</div>
+    
+    <div class="board" id="board">
+        <button class="cell" data-index="0"></button>
+        <button class="cell" data-index="1"></button>
+        <button class="cell" data-index="2"></button>
+        <button class="cell" data-index="3"></button>
+        <button class="cell" data-index="4"></button>
+        <button class="cell" data-index="5"></button>
+        <button class="cell" data-index="6"></button>
+        <button class="cell" data-index="7"></button>
+        <button class="cell" data-index="8"></button>
+    </div>
+
+    <button class="restart-btn" onclick="restartGame()">නැවත පටන් ගන්න 🔄</button>
+
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const statusText = document.getElementById('status');
+        let currentPlayer = 'X';
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        let gameActive = true;
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6]             // Diagonals
+        ];
+
+        function handleCellClick(e) {
+            const clickedCell = e.target;
+            const clickedIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+            if (gameState[clickedIndex] !== "" || !gameActive) {
+                return;
+            }
+
+            gameState[clickedIndex] = currentPlayer;
+            clickedCell.textContent = currentPlayer;
+            clickedCell.classList.add(currentPlayer.toLowerCase());
+
+            checkResult();
+        }
+
+        function checkResult() {
+            let roundWon = false;
+
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                    roundWon = true;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                statusText.textContent = `🎉 Player ${currentPlayer} ජයග්‍රහණය කළා!`;
+                gameActive = false;
+                return;
+            }
+
+            if (!gameState.includes("")) {
+                statusText.textContent = "🤝 සම වුණා! (Draw)";
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            statusText.textContent = `Player ${currentPlayer} ගේ වාරය`;
+        }
+
+        function restartGame() {
+            currentPlayer = "X";
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            gameActive = true;
+            statusText.textContent = `Player X ගේ වාරය`;
+            cells.forEach(cell => {
+                cell.textContent = "";
+                cell.classList.remove('x', 'o');
+            });
+        }
+
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    </script>
 </body>
 </html>
