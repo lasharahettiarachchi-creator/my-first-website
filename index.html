@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer & Solo Snake Game - Ultra Pro Edition</title>
+    <title>Multiplayer & Solo Snake Game - Sound Edition</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -122,7 +122,6 @@
             border-radius: 1rem; max-width: 420px; width: 100%; text-align: left;
         }
 
-        /* Modern Glow Touch Controls */
         .controls { 
             display: grid; 
             grid-template-columns: repeat(3, 68px); 
@@ -168,8 +167,8 @@
     
     <input type="text" id="player-name-input" placeholder="ඔබේ නම (Name) ඇතුළත් කරන්න" maxlength="12">
     
-    <button class="btn btn-solo" onclick="startSoloGame()">👤 Play Solo (තනියම සෙල්ලම් කරන්න)</button>
-    <button class="btn" onclick="createRoom()">🚀 Create Room (Multiplayer Host)</button>
+    <button class="btn btn-solo" onclick="playClickSound(); startSoloGame()">👤 Play Solo (තනියම සෙල්ලම් කරන්න)</button>
+    <button class="btn" onclick="playClickSound(); createRoom()">🚀 Create Room (Multiplayer Host)</button>
     
     <div id="host-area" class="hidden">
         <p style="margin-bottom: 3px; color: #38bdf8; font-weight: bold;">ඔබේ Room Code එක:</p>
@@ -180,8 +179,8 @@
     <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
 
     <input type="text" id="room-input" placeholder="ROOM CODE එක ඇතුළත් කරන්න">
-    <button class="btn btn-secondary" onclick="joinRoom()">🎮 Join Room</button>
-    <button class="btn btn-help" onclick="toggleHelp(true)">❓ ක්‍රීඩා කරන්නේ කෙසේද? (Help)</button>
+    <button class="btn btn-secondary" onclick="playClickSound(); joinRoom()">🎮 Join Room</button>
+    <button class="btn btn-help" onclick="playClickSound(); toggleHelp(true)">❓ ක්‍රීඩා කරන්නේ කෙසේද? (Help)</button>
     
     <div class="status" id="lobby-status"></div>
 </div>
@@ -194,10 +193,9 @@
             <li><b>Player Name:</b> Game එකට යන්න කලින් ඔබේ නම ඇතුළත් කරන්න.</li>
             <li><b>Solo Mode:</b> තනියම සෙල්ලම් කරලා ලකුණු වැඩි කරගන්න <b>'Play Solo'</b> දෙන්න.</li>
             <li><b>Multiplayer:</b> Room එකක් සාදා හෝ Join වී යාළුවන් සමඟ සෙල්ලම් කරන්න (උපරිම 6 දෙනෙක්).</li>
-            <li><b>පාලනය (Controls):</b> ඊතල (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons ක්ලික් කිරීමෙන් සර්පයා හැසිරවිය හැක .</li>
-            <li><b>(still dev):</b>  no win or lost sust score </li>
+            <li><b>පාලනය (Controls):</b> ඊතල කුංචු (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons ක්ලික් කිරීමෙන් සර්පයා හැසිරවිය හැක.</li>
         </ul>
-        <button class="btn" onclick="toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
+        <button class="btn" onclick="playClickSound(); toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
     </div>
 </div>
 
@@ -210,16 +208,76 @@
     </div>
     
     <div class="controls">
-        <button class="ctrl-btn ctrl-up" onclick="changeDirection(0, -1)">▲</button>
-        <button class="ctrl-btn ctrl-left" onclick="changeDirection(-1, 0)">◄</button>
-        <button class="ctrl-btn ctrl-down" onclick="changeDirection(0, 1)">▼</button>
-        <button class="ctrl-btn ctrl-right" onclick="changeDirection(1, 0)">►</button>
+        <button class="ctrl-btn ctrl-up" onclick="playClickSound(); changeDirection(0, -1)">▲</button>
+        <button class="ctrl-btn ctrl-left" onclick="playClickSound(); changeDirection(-1, 0)">◄</button>
+        <button class="ctrl-btn ctrl-down" onclick="playClickSound(); changeDirection(0, 1)">▼</button>
+        <button class="ctrl-btn ctrl-right" onclick="playClickSound(); changeDirection(1, 0)">►</button>
     </div>
 
     <div class="status" id="game-status">ඊතල හෝ බටන් භාවිතයෙන් සර්පයා හැසිරවන්න!</div>
 </div>
 
 <script>
+    // Web Audio API Sound Synthesizer
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playClickSound() {
+        initAudio();
+        if (!audioCtx) return;
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    function playEatSound() {
+        initAudio();
+        if (!audioCtx) return;
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); // E5
+        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.15); // G5
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+    }
+
+    function playStartSound() {
+        initAudio();
+        if (!audioCtx) return;
+        let notes = [300, 450, 600, 750];
+        notes.forEach((freq, idx) => {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.06);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime + idx * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.06 + 0.08);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + idx * 0.06);
+            osc.stop(audioCtx.currentTime + idx * 0.06 + 0.08);
+        });
+    }
+
     const firebaseConfig = {
         databaseURL: "https://snake-6e0ae-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
@@ -278,6 +336,7 @@
     }
 
     function startSoloGame() {
+        playStartSound();
         isSolo = true;
         myName = getPlayerName();
         names.p1 = myName;
@@ -302,6 +361,7 @@
 
             if (head.x === food.x && head.y === food.y) {
                 scores.p1 += 10;
+                playEatSound();
                 document.getElementById('scores-container').innerHTML = `<span style="color:#22c55e; padding: 2px 8px;">${myName}: ${scores.p1}</span>`;
                 spawnFood();
             } else {
@@ -354,7 +414,6 @@
         let fx = food.x * gridSize + gridSize / 2 + 3;
         let fy = food.y * gridSize + gridSize / 2 + 3;
         
-        // Pulsing / Blinking animation calculation using time
         let time = Date.now() / 180;
         let pulseSize = (gridSize / 2 - 2) + Math.sin(time) * 3;
         let glowIntensity = 15 + Math.sin(time) * 10;
@@ -377,6 +436,7 @@
     }
 
     function createRoom() {
+        playStartSound();
         isSolo = false;
         myName = getPlayerName();
         names.p1 = myName;
@@ -402,6 +462,7 @@
     }
 
     function joinRoom() {
+        playStartSound();
         isSolo = false;
         myName = getPlayerName();
         const inputCode = document.getElementById('room-input').value.trim();
@@ -445,11 +506,18 @@
             const data = snapshot.val();
             if (!data) return;
 
+            let prevFoodX = food.x;
+            let prevFoodY = food.y;
+
             snakes = data.snakes || snakes;
             dirs = data.dirs || dirs;
             scores = data.scores || scores;
             names = data.names || names;
             food = data.food || food;
+
+            if (food.x !== prevFoodX || food.y !== prevFoodY) {
+                playEatSound();
+            }
 
             if (data.playerCount) {
                 document.getElementById('players-count').innerText = `👥 Joined Players: ${data.playerCount} / 6`;
@@ -566,10 +634,12 @@
         if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
         if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
 
-        if (newDir) changeDirection(newDir.x, newDir.y);
+        if (newDir) {
+            playClickSound();
+            changeDirection(newDir.x, newDir.y);
+        }
     });
 
-    // Continuous render loop for smooth blinking animation even when standing still
     function renderLoop() {
         if (!document.getElementById('game').classList.contains('hidden')) {
             if (isSolo) {
