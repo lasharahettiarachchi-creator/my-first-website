@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer & Solo Snake Game - 6 Player Edition</title>
+    <title>Multiplayer & Solo Snake Game - 6 Player Realistic Edition</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -134,7 +134,7 @@
     <div class="status" id="lobby-status"></div>
 </div>
 
-<!-- Updated Sinhala Help Modal -->
+<!-- Sinhala Help Modal -->
 <div class="modal hidden" id="help-modal">
     <div class="modal-content">
         <h3 style="color:#4ade80; text-align:center;">📖 ක්‍රීඩා කරන්නේ කෙසේද?</h3>
@@ -144,7 +144,7 @@
             <li><b>Multiplayer (Join):</b> ලැබුණු කෝඩ් එක ඇතුළත් කර <b>'Join Room'</b> දෙන්න.</li>
             <li><b>ක්‍රීඩකයින්ගේ වර්ණ:</b> P1 (කොළ), P2 (නිල්), P3 (කහ), P4 (දම්), P5 (සියන්), P6 (රෝස).</li>
             <li><b>පාලනය (Controls):</b> ඊතල කුංචු (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons භාවිතා කරන්න.</li>
-            <li><b>බිත්ති හරහා යාම:</b> සර්පයා බිත්තියකින් එළියට ගියහොත් ප්‍රතිවිරුද්ධ පැත්තෙන් මතුවේ.</li>
+            <li><b>සර්පයාගේ පෙනුම:</b> <b>Tapered Tail Effect</b> (නගුට හීනි වීම) සහ <b>Realistic Eyes</b> (දිශාවට හැරෙන ඇස්).</li>
         </ul>
         <button class="btn" onclick="toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
     </div>
@@ -254,28 +254,33 @@
         }, 130);
     }
 
+    /* REALISTIC SNAKE DRAWING WITH TAPERED TAIL AND EYES */
     function drawSnake(snake, headColor, bodyColor, currentDir) {
         let totalSegments = snake.length;
         snake.forEach((part, index) => {
             let px = part.x * gridSize;
             let py = part.y * gridSize;
 
+            // Tapering ratio for shrinking tail
             let shrinkRatio = index / Math.max(totalSegments, 1);
-            let currentSize = Math.max(gridSize - (shrinkRatio * 8), 6);
+            let currentSize = Math.max(gridSize - (shrinkRatio * 10), 6);
             let offset = (gridSize - currentSize) / 2;
 
             ctx.fillStyle = (index === 0) ? headColor : bodyColor;
             ctx.beginPath();
-            ctx.roundRect(px + offset, py + offset, currentSize, currentSize, index === 0 ? 5 : 3);
+            ctx.roundRect(px + offset, py + offset, currentSize, currentSize, index === 0 ? 6 : 4);
             ctx.fill();
 
+            // Head Eyes Direction
             if (index === 0) {
                 ctx.fillStyle = '#ffffff';
                 let eye1X = px + 5, eye1Y = py + 5, eye2X = px + 12, eye2Y = py + 12;
+
                 if (currentDir.x === 1) { eye1X = px + 12; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 12; }
                 else if (currentDir.x === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 4; eye2Y = py + 12; }
                 else if (currentDir.y === 1) { eye1X = px + 4; eye1Y = py + 12; eye2X = px + 12; eye2Y = py + 12; }
                 else if (currentDir.y === -1) { eye1X = px + 4; eye1Y = py + 4; eye2X = px + 12; eye2Y = py + 4; }
+
                 ctx.fillRect(eye1X, eye1Y, 3, 3);
                 ctx.fillRect(eye2X, eye2Y, 3, 3);
             }
