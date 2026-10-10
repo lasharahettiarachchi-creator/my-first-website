@@ -26,7 +26,7 @@
 
 <div class="card" id="lobby">
     <h1>🐍 Firebase Snake</h1>
-    <p>Room එකක් සාදා Room Code එක අනෙක් කෙනාට දෙන්න.</p>
+    <p>Room ekak sada Room Code eka anek kenata denna.</p>
     
     <button class="btn" onclick="createRoom()">Create Room</button>
     
@@ -114,7 +114,6 @@
 
         db.ref('rooms/' + roomCode).once('value', (snapshot) => {
             if (snapshot.exists()) {
-                // Immediately start listening and update status to playing
                 listenForGame();
                 db.ref('rooms/' + roomCode).update({ status: 'playing' });
             } else {
@@ -155,6 +154,7 @@
 
     function startHostLoop() {
         gameInterval = setInterval(() => {
+            // Move Snake 1
             let head1 = {x: snake1[0].x + dir1.x, y: snake1[0].y + dir1.y};
             snake1.unshift(head1);
             if (head1.x === food.x && head1.y === food.y) {
@@ -164,6 +164,7 @@
                 snake1.pop();
             }
 
+            // Move Snake 2
             let head2 = {x: snake2[0].x + dir2.x, y: snake2[0].y + dir2.y};
             snake2.unshift(head2);
             if (head2.x === food.x && head2.y === food.y) {
@@ -178,9 +179,7 @@
                 snake2: snake2,
                 food: food,
                 score1: score1,
-                score2: score2,
-                dir1: dir1,
-                dir2: dir2
+                score2: score2
             });
         }, 130);
     }
