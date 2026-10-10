@@ -154,8 +154,11 @@
 
     function startHostLoop() {
         gameInterval = setInterval(() => {
-            // Move Snake 1
-            let head1 = {x: snake1[0].x + dir1.x, y: snake1[0].y + dir1.y};
+            // Move Snake 1 with Screen Wrapping
+            let head1 = {
+                x: (snake1[0].x + dir1.x + tileCount) % tileCount,
+                y: (snake1[0].y + dir1.y + tileCount) % tileCount
+            };
             snake1.unshift(head1);
             if (head1.x === food.x && head1.y === food.y) {
                 score1 += 10;
@@ -164,8 +167,11 @@
                 snake1.pop();
             }
 
-            // Move Snake 2
-            let head2 = {x: snake2[0].x + dir2.x, y: snake2[0].y + dir2.y};
+            // Move Snake 2 with Screen Wrapping
+            let head2 = {
+                x: (snake2[0].x + dir2.x + tileCount) % tileCount,
+                y: (snake2[0].y + dir2.y + tileCount) % tileCount
+            };
             snake2.unshift(head2);
             if (head2.x === food.x && head2.y === food.y) {
                 score2 += 10;
