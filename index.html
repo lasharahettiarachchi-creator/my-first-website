@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer & Solo Snake Game - 6 Player Realistic Edition</title>
+    <title>Multiplayer & Solo Snake Game - Named Edition</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -59,8 +59,7 @@
             color: white; 
             margin-top: 10px; 
             text-align: center; 
-            font-size: 1.1rem; 
-            letter-spacing: 2px;
+            font-size: 1.05rem; 
         }
         canvas { 
             background: #020617; 
@@ -116,8 +115,10 @@
     <h1>🐍 6-Player Snake Arena</h1>
     <p style="color: #94a3b8; font-size: 0.85rem;">Play Solo or up to 6 Players Live!</p>
     
+    <input type="text" id="player-name-input" placeholder="ඔබේ නම (Name) ඇතුළත් කරන්න" maxlength="12">
+    
     <button class="btn btn-solo" onclick="startSoloGame()">👤 Play Solo (තනියම සෙල්ලම් කරන්න)</button>
-    <button class="btn" onclick="createRoom()">🚀 Create Room (Multiplayer)</button>
+    <button class="btn" onclick="createRoom()">🚀 Create Room (Multiplayer Host)</button>
     
     <div id="host-area" class="hidden">
         <p style="margin-bottom: 3px; color: #38bdf8; font-weight: bold;">ඔබේ Room Code එක:</p>
@@ -139,12 +140,11 @@
     <div class="modal-content">
         <h3 style="color:#4ade80; text-align:center;">📖 ක්‍රීඩා කරන්නේ කෙසේද?</h3>
         <ul style="color:#cbd5e1; font-size:0.9rem; line-height:1.6; padding-left: 20px;">
-            <li><b>Solo Mode:</b> කවුරුත් නැති වෙලාවක තනියම සෙල්ලම් කරලා ලකුණු වැඩි කරගන්න <b>'Play Solo'</b> දෙන්න (Game Over වීමක් නැත!).</li>
-            <li><b>Multiplayer (Host):</b> <b>'Create Room'</b> ක්ලික් කර ලැබෙන කෝඩ් එක අනෙක් ක්‍රීඩකයින්ට (උපරිම 6 දෙනෙක් දක්වා) දෙන්න.</li>
+            <li><b>Player Name:</b> Game එකට යන්න කලින් ඔබේ නම ඇතුළත් කරන්න.</li>
+            <li><b>Solo Mode:</b> තනියම සෙල්ලම් කරලා ලකුණු වැඩි කරගන්න <b>'Play Solo'</b> දෙන්න.</li>
+            <li><b>Multiplayer (Host):</b> <b>'Create Room'</b> ක්ලික් කර ලැබෙන කෝඩ් එක යාළුවන්ට දෙන්න.</li>
             <li><b>Multiplayer (Join):</b> ලැබුණු කෝඩ් එක ඇතුළත් කර <b>'Join Room'</b> දෙන්න.</li>
-            <li><b>ක්‍රීඩකයින්ගේ වර්ණ:</b> P1 (කොළ), P2 (නිල්), P3 (කහ), P4 (දම්), P5 (සියන්), P6 (රෝස).</li>
-            <li><b>පාලනය (Controls):</b> ඊතල කුංචු (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons භාවිතා කරන්න.</li>
-            <li><b>සර්පයාගේ පෙනුම:</b> <b>Tapered Tail Effect</b> (නගුට හීනි වීම) සහ <b>Realistic Eyes</b> (දිශාවට හැරෙන ඇස්).</li>
+            <li><b>Name Display:</b> සර්පයාට උඩින් සහ Scoreboard එකේ ඔබේ නම අදාළ පාටින්ම පෙන්වයි.</li>
         </ul>
         <button class="btn" onclick="toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
     </div>
@@ -152,14 +152,7 @@
 
 <div class="card hidden" id="game">
     <h2 id="game-title">⚡ Battle Arena</h2>
-    <div class="scores" id="scores-container">
-        <span style="color:#22c55e;" id="p1-score">P1: 0</span>
-        <span style="color:#3b82f6;" id="p2-score">P2: 0</span>
-        <span style="color:#eab308;" id="p3-score">P3: 0</span>
-        <span style="color:#a855f7;" id="p4-score">P4: 0</span>
-        <span style="color:#06b6d4;" id="p5-score">P5: 0</span>
-        <span style="color:#ec4899;" id="p6-score">P6: 0</span>
-    </div>
+    <div class="scores" id="scores-container"></div>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     
     <div class="controls">
@@ -182,6 +175,7 @@
     let roomCode = '';
     let myRole = ''; 
     let isSolo = false;
+    let myName = 'Player';
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -207,6 +201,7 @@
     };
 
     let scores = { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0 };
+    let names = { p1: 'P1', p2: 'P2', p3: 'P3', p4: 'P4', p5: 'P5', p6: 'P6' };
     let food = {x: 10, y: 10};
     let gameInterval = null;
 
@@ -219,16 +214,24 @@
         p6: { head: '#831843', body: '#ec4899' }
     };
 
+    function getPlayerName() {
+        const inputName = document.getElementById('player-name-input').value.trim();
+        return inputName ? inputName : 'Player';
+    }
+
     function toggleHelp(show) {
         document.getElementById('help-modal').classList.toggle('hidden', !show);
     }
 
     function startSoloGame() {
         isSolo = true;
+        myName = getPlayerName();
+        names.p1 = myName;
+
         document.getElementById('lobby').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
         document.getElementById('game-title').innerText = "👤 Solo Practice Mode";
-        document.getElementById('scores-container').innerHTML = '<span style="color:#22c55e;" id="p1-score">Score: 0</span>';
+        document.getElementById('scores-container').innerHTML = `<span style="color:#22c55e;" id="p1-score">${myName}: 0</span>`;
 
         snakes.p1 = [{x: 10, y: 10}];
         dirs.p1 = {x: 1, y: 0};
@@ -244,7 +247,7 @@
 
             if (head.x === food.x && head.y === food.y) {
                 scores.p1 += 10;
-                document.getElementById('p1-score').innerText = `Score: ${scores.p1}`;
+                document.getElementById('p1-score').innerText = `${myName}: ${scores.p1}`;
                 spawnFood();
             } else {
                 snakes.p1.pop();
@@ -254,14 +257,12 @@
         }, 130);
     }
 
-    /* REALISTIC SNAKE DRAWING WITH TAPERED TAIL AND EYES */
-    function drawSnake(snake, headColor, bodyColor, currentDir) {
+    function drawSnake(snake, headColor, bodyColor, currentDir, playerName) {
         let totalSegments = snake.length;
         snake.forEach((part, index) => {
             let px = part.x * gridSize;
             let py = part.y * gridSize;
 
-            // Tapering ratio for shrinking tail
             let shrinkRatio = index / Math.max(totalSegments, 1);
             let currentSize = Math.max(gridSize - (shrinkRatio * 10), 6);
             let offset = (gridSize - currentSize) / 2;
@@ -271,7 +272,7 @@
             ctx.roundRect(px + offset, py + offset, currentSize, currentSize, index === 0 ? 6 : 4);
             ctx.fill();
 
-            // Head Eyes Direction
+            // Head Eyes & Name Label
             if (index === 0) {
                 ctx.fillStyle = '#ffffff';
                 let eye1X = px + 5, eye1Y = py + 5, eye2X = px + 12, eye2Y = py + 12;
@@ -283,6 +284,12 @@
 
                 ctx.fillRect(eye1X, eye1Y, 3, 3);
                 ctx.fillRect(eye2X, eye2Y, 3, 3);
+
+                // Draw Player Name Above Head
+                ctx.fillStyle = bodyColor;
+                ctx.font = 'bold 11px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(playerName, px + gridSize / 2, py - 4);
             }
         });
     }
@@ -296,11 +303,14 @@
         ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
         ctx.fill();
 
-        drawSnake(snakes.p1, colors.p1.head, colors.p1.body, dirs.p1);
+        drawSnake(snakes.p1, colors.p1.head, colors.p1.body, dirs.p1, names.p1);
     }
 
     function createRoom() {
         isSolo = false;
+        myName = getPlayerName();
+        names.p1 = myName;
+
         roomCode = Math.floor(1000 + Math.random() * 9000).toString();
         
         document.getElementById('host-area').classList.remove('hidden');
@@ -312,6 +322,7 @@
             snakes: snakes,
             dirs: dirs,
             scores: scores,
+            names: names,
             food: food,
             playerCount: 1,
             status: 'waiting'
@@ -322,7 +333,9 @@
 
     function joinRoom() {
         isSolo = false;
+        myName = getPlayerName();
         const inputCode = document.getElementById('room-input').value.trim();
+        
         if(!inputCode) {
             document.getElementById('lobby-status').innerText = "කරුණාකර Room Code එක ඇතුළත් කරන්න!";
             return;
@@ -342,12 +355,14 @@
 
                 count += 1;
                 myRole = 'p' + count;
-
-                db.ref('rooms/' + roomCode).update({ 
+                
+                let updateObj = { 
                     playerCount: count,
                     status: 'playing' 
-                });
+                };
+                updateObj[`names/${myRole}`] = myName;
 
+                db.ref('rooms/' + roomCode).update(updateObj);
                 listenForGame();
             } else {
                 document.getElementById('lobby-status').innerText = "Room එක හමුවුනේ නැත!";
@@ -363,6 +378,7 @@
             snakes = data.snakes || snakes;
             dirs = data.dirs || dirs;
             scores = data.scores || scores;
+            names = data.names || names;
             food = data.food || food;
 
             if (data.playerCount) {
@@ -384,7 +400,7 @@
     function startGameUI() {
         document.getElementById('lobby').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
-        document.getElementById('game-title').innerText = `⚡ Live 6-Player Battle (${myRole.toUpperCase()})`;
+        document.getElementById('game-title').innerText = `⚡ Live 6-Player Battle (${myName})`;
     }
 
     function startHostLoop() {
@@ -429,14 +445,18 @@
     }
 
     function updateScores(activePlayers) {
-        for (let i = 1; i <= 6; i++) {
-            let el = document.getElementById(`p${i}-score`);
-            if (i <= activePlayers) {
-                el.style.display = 'inline';
-                el.innerText = `P${i}: ${scores['p' + i]}`;
-            } else {
-                el.style.display = 'none';
-            }
+        const scoresContainer = document.getElementById('scores-container');
+        scoresContainer.innerHTML = '';
+
+        for (let i = 1; i <= activePlayers; i++) {
+            let pKey = 'p' + i;
+            let pName = names[pKey] || `P${i}`;
+            let pColor = colors[pKey].body;
+
+            let span = document.createElement('span');
+            span.style.color = pColor;
+            span.innerText = `${pName}: ${scores[pKey]}`;
+            scoresContainer.appendChild(span);
         }
     }
 
@@ -451,7 +471,8 @@
 
         for (let i = 1; i <= activePlayers; i++) {
             let pKey = 'p' + i;
-            drawSnake(snakes[pKey], colors[pKey].head, colors[pKey].body, dirs[pKey]);
+            let pName = names[pKey] || `P${i}`;
+            drawSnake(snakes[pKey], colors[pKey].head, colors[pKey].body, dirs[pKey], pName);
         }
     }
 
@@ -464,20 +485,4 @@
         if (roomCode && myRole) {
             dirs[myRole] = newDir;
             let updateObj = {};
-            updateObj[`dirs/${myRole}`] = newDir;
-            db.ref('rooms/' + roomCode).update(updateObj);
-        }
-    }
-
-    window.addEventListener('keydown', e => {
-        let newDir = null;
-        if (e.key === 'ArrowUp') newDir = {x: 0, y: -1};
-        if (e.key === 'ArrowDown') newDir = {x: 0, y: 1};
-        if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
-        if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
-
-        if (newDir) changeDirection(newDir.x, newDir.y);
-    });
-</script>
-</body>
-</html>
+            updateObj
