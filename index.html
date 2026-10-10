@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer & Solo Snake Game - Named Edition</title>
+    <title>Multiplayer & Solo Snake Game - Fixed Controls</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -101,8 +101,9 @@
             background: #1e293b; border: 1px solid #475569; padding: 1.5rem;
             border-radius: 1rem; max-width: 420px; width: 100%; text-align: left;
         }
-        .controls { display: grid; grid-template-columns: repeat(3, 55px); gap: 8px; justify-content: center; margin-top: 10px; }
-        .ctrl-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 1.2rem; cursor: pointer; }
+        .controls { display: grid; grid-template-columns: repeat(3, 60px); gap: 8px; justify-content: center; margin-top: 10px; }
+        .ctrl-btn { background: #334155; color: white; border: 2px solid #475569; padding: 14px; border-radius: 12px; font-size: 1.4rem; cursor: pointer; user-select: none; }
+        .ctrl-btn:active { background: #3b82f6; transform: scale(0.95); }
         .ctrl-up { grid-column: 2; }
         .ctrl-left { grid-column: 1; }
         .ctrl-down { grid-column: 2; }
@@ -142,9 +143,8 @@
         <ul style="color:#cbd5e1; font-size:0.9rem; line-height:1.6; padding-left: 20px;">
             <li><b>Player Name:</b> Game එකට යන්න කලින් ඔබේ නම ඇතුළත් කරන්න.</li>
             <li><b>Solo Mode:</b> තනියම සෙල්ලම් කරලා ලකුණු වැඩි කරගන්න <b>'Play Solo'</b> දෙන්න.</li>
-            <li><b>Multiplayer (Host):</b> <b>'Create Room'</b> ක්ලික් කර ලැබෙන කෝඩ් එක යාළුවන්ට දෙන්න.</li>
-            <li><b>Multiplayer (Join):</b> ලැබුණු කෝඩ් එක ඇතුළත් කර <b>'Join Room'</b> දෙන්න.</li>
-            <li><b>Name Display:</b> සර්පයාට උඩින් සහ Scoreboard එකේ ඔබේ නම අදාළ පාටින්ම පෙන්වයි.</li>
+            <li><b>Multiplayer:</b> Room එකක් සාදා හෝ Join වී යාළුවන් සමඟ සෙල්ලම් කරන්න.</li>
+            <li><b>පාලනය (Controls):</b> ඊතල කුංචු (Arrow Keys) හෝ screen එකේ ඇති Touch Buttons ක්ලික් කිරීමෙන් සර්පයා හැසිරවිය හැක.</li>
         </ul>
         <button class="btn" onclick="toggleHelp(false)" style="margin-top: 15px;">තේරුණා! (Close)</button>
     </div>
@@ -173,7 +173,7 @@
     const db = firebase.database();
 
     let roomCode = '';
-    let myRole = ''; 
+    let myRole = 'p1'; 
     let isSolo = false;
     let myName = 'Player';
 
@@ -238,6 +238,7 @@
         scores.p1 = 0;
         spawnFood();
 
+        if(gameInterval) clearInterval(gameInterval);
         gameInterval = setInterval(() => {
             let head = {
                 x: (snakes.p1[0].x + dirs.p1.x + tileCount) % tileCount,
@@ -272,7 +273,6 @@
             ctx.roundRect(px + offset, py + offset, currentSize, currentSize, index === 0 ? 6 : 4);
             ctx.fill();
 
-            // Head Eyes & Name Label
             if (index === 0) {
                 ctx.fillStyle = '#ffffff';
                 let eye1X = px + 5, eye1Y = py + 5, eye2X = px + 12, eye2Y = py + 12;
@@ -285,7 +285,6 @@
                 ctx.fillRect(eye1X, eye1Y, 3, 3);
                 ctx.fillRect(eye2X, eye2Y, 3, 3);
 
-                // Draw Player Name Above Head
                 ctx.fillStyle = bodyColor;
                 ctx.font = 'bold 11px Segoe UI';
                 ctx.textAlign = 'center';
@@ -404,6 +403,7 @@
     }
 
     function startHostLoop() {
+        if(gameInterval) clearInterval(gameInterval);
         gameInterval = setInterval(() => {
             db.ref('rooms/' + roomCode).once('value', (snapshot) => {
                 let data = snapshot.val();
@@ -413,9 +413,10 @@
 
                 for (let i = 1; i <= pCount; i++) {
                     let pKey = 'p' + i;
+                    let currentDir = dirs[pKey] || {x: 1, y: 0};
                     let head = {
-                        x: (snakes[pKey][0].x + dirs[pKey].x + tileCount) % tileCount,
-                        y: (snakes[pKey][0].y + dirs[pKey].y + tileCount) % tileCount
+                        x: (snakes[pKey][0].x + currentDir.x + tileCount) % tileCount,
+                        y: (snakes[pKey][0].y + currentDir.y + tileCount) % tileCount
                     };
 
                     snakes[pKey].unshift(head);
@@ -485,4 +486,20 @@
         if (roomCode && myRole) {
             dirs[myRole] = newDir;
             let updateObj = {};
-            updateObj
+            updateObj[`dirs/${myRole}`] = newDir;
+            db.ref('rooms/' + roomCode).update(updateObj);
+        }
+    }
+
+    window.addEventListener('keydown', e => {
+        let newDir = null;
+        if (e.key === 'ArrowUp') newDir = {x: 0, y: -1};
+        if (e.key === 'ArrowDown') newDir = {x: 0, y: 1};
+        if (e.key === 'ArrowLeft') newDir = {x: -1, y: 0};
+        if (e.key === 'ArrowRight') newDir = {x: 1, y: 0};
+
+        if (newDir) changeDirection(newDir.x, newDir.y);
+    });
+</script>
+</body>
+</html>
